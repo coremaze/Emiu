@@ -143,6 +143,10 @@ class CPU():
         self.S = 0 #Stack
         self.PC = 0 #Program Counter
 
+        self.memRegisters = bytearray(0x80)
+        self.RAM = bytearray(0x10000)
+        self.videoRegisters = bytearray(0x2)
+
         self.Reset()
 
 
@@ -157,17 +161,11 @@ class CPU():
         return struct.unpack('<H', self.ReadMemory(self.BRR, length=2))[0]
 
     def GetResetVector(self):
-        return struct.unpack('<H', self.OTP[0x7FFC : 0x7FFE])[0]
+        return struct.unpack('<H', self.ReadMemory(0x7FFC, length=2))[0]
     def Reset(self):
         self.i = True
         self.d = False
         self.PC = self.GetResetVector()
-
-        self.memRegisters = bytearray(0x80)
-        self.memRegisters[0x32] = 1 #Set PRR to OTP second page
-        self.memRegisters[0x33] = 0
-        self.RAM = bytearray(0x10000)
-        self.videoRegisters = bytearray(0x2)
         self.display = Display()
 
     def GetBTVector(self):
