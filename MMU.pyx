@@ -1,20 +1,30 @@
-class MMU():
-    def __init__(self, cpu):
+cdef unsigned short BRR_START = 0x2000
+cdef unsigned short BRR_LENGTH = 0x2000
+cdef unsigned short PRR_START = 0x4000
+cdef unsigned short PRR_LENGTH = 0x4000
+cdef unsigned short DRR_START = 0x8000
+cdef unsigned short DRR_LENGTH = 0x8000
+cdef unsigned short REGISTERS_START = 0x0
+cdef unsigned short REGISTERS_LENGTH = 0x80
+
+cdef class MMU:
+    cdef object CPU
+    def __init__(self, object cpu):
         self.CPU = cpu
 
-    def StoreMemory(self, address, byte):
-        BRR_START = 0x2000
-        BRR_LENGTH = 0x2000
-        PRR_START = 0x4000
-        PRR_LENGTH = 0x4000
-        DRR_START = 0x8000
-        DRR_LENGTH = 0x8000
-        REGISTERS_START = 0x0
-        REGISTERS_LENGTH = 0x80
+    cpdef public void StoreMemory(self, unsigned short address, unsigned char byte):
 
+        cdef unsigned char page
+        
+        cdef unsigned short brr
+        cdef unsigned short prr
+        cdef unsigned short drr
+
+        cdef unsigned short paged_location
+        
         if REGISTERS_START <= address < (REGISTERS_START + REGISTERS_LENGTH):
             self.CPU.memRegisters[address] = byte
-
+            
         elif BRR_START <= address < (BRR_START + BRR_LENGTH): #BRR
             brr = self.CPU.GetBRR()
             page = brr & 0x7F #Select page for OTP or flash
@@ -63,15 +73,9 @@ class MMU():
         else:
             self.CPU.RAM[address] = byte
 
-    def ReadMemory(self, address, length=1):
-        BRR_START = 0x2000
-        BRR_LENGTH = 0x2000
-        PRR_START = 0x4000
-        PRR_LENGTH = 0x4000
-        DRR_START = 0x8000
-        DRR_LENGTH = 0x8000
-        REGISTERS_START = 0x0
-        REGISTERS_LENGTH = 0x80
+
+
+    cpdef public unsigned char ReadByte(self, unsigned short address):
         if REGISTERS_START <= address < (REGISTERS_START + REGISTERS_LENGTH):
             byte = self.CPU.memRegisters[address]
             
@@ -103,7 +107,7 @@ class MMU():
             elif prr & 0x8000 == 0x8000: #Internal RAM 0x4000~0x7FFF
                 byte = self.CPU.RAM[address] #Fall through
             else:
-                print('Invalid PRR mask')
+                print(f'Invalid PRR mask: {prr:X}')
 
         elif DRR_START <= address < (DRR_START + DRR_LENGTH):
             drr = self.CPU.GetDRR()
@@ -122,7 +126,7 @@ class MMU():
         else:
             byte = self.CPU.RAM[address]
 
-        if length > 1:
-            return bytes([byte]) + bytes([self.ReadMemory(address + 1, length - 1)])
-        else:
-            return byte
+        return byte
+    
+    cpdef public unsigned short ReadShort(self, unsigned short address):
+        return self.ReadByte(address) + (self.ReadByte(address+1)<<8)
