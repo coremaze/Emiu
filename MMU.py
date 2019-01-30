@@ -12,10 +12,10 @@ class MMU():
         REGISTERS_START = 0x0
         REGISTERS_LENGTH = 0x80
 
-        if address in range(REGISTERS_START, REGISTERS_START + REGISTERS_LENGTH):
+        if REGISTERS_START <= address < (REGISTERS_START + REGISTERS_LENGTH):
             self.CPU.memRegisters[address] = byte
 
-        elif address in range(BRR_START, BRR_START + BRR_LENGTH): #BRR
+        elif BRR_START <= address < (BRR_START + BRR_LENGTH): #BRR
             brr = self.CPU.GetBRR()
             page = brr & 0x7F #Select page for OTP or flash
             paged_location = (address - BRR_START) + BRR_LENGTH*page #Calculate location for OTP or flash
@@ -30,7 +30,7 @@ class MMU():
             else:
                 raise Exception('Invalid BRR mask')
             
-        elif address in range(PRR_START, PRR_START + PRR_LENGTH):
+        elif PRR_START <= address < (PRR_START + PRR_LENGTH):
             prr = self.CPU.GetPRR()
             page = prr & 0x7F #Select page for OTP or flash
             paged_location = (address - PRR_START) + PRR_LENGTH*page #Calculate location for OTP or flash
@@ -45,7 +45,7 @@ class MMU():
             else:
                 raise Exception('Invalid PRR mask')
 
-        elif address in range(DRR_START, PRR_START + DRR_LENGTH):
+        elif DRR_START <= address < (DRR_START + DRR_LENGTH):
             drr = self.CPU.GetDRR()
             #drr = 0x78CD #DEBUG
             page = drr & 0x7F #Select page for OTP or flash
@@ -72,10 +72,10 @@ class MMU():
         DRR_LENGTH = 0x8000
         REGISTERS_START = 0x0
         REGISTERS_LENGTH = 0x80
-        if address in range(REGISTERS_START, REGISTERS_START + REGISTERS_LENGTH):
+        if REGISTERS_START <= address < (REGISTERS_START + REGISTERS_LENGTH):
             byte = self.CPU.memRegisters[address]
             
-        elif address in range(BRR_START, BRR_START + BRR_LENGTH): #BRR
+        elif BRR_START <= address < (BRR_START + BRR_LENGTH): #BRR
             brr = self.CPU.GetBRR()
             page = brr & 0x7F #Select page for OTP or flash
             paged_location = (address - BRR_START) + BRR_LENGTH*page #Calculate location for OTP or flash
@@ -90,7 +90,7 @@ class MMU():
             else:
                 print('Invalid BRR mask')
             
-        elif address in range(PRR_START, PRR_START + PRR_LENGTH):
+        elif PRR_START <= address < (PRR_START + PRR_LENGTH):
             prr = self.CPU.GetPRR()
             page = prr & 0x7F #Select page for OTP or flash
             paged_location = (address - PRR_START) + PRR_LENGTH*page #Calculate location for OTP or flash
@@ -105,7 +105,7 @@ class MMU():
             else:
                 print('Invalid PRR mask')
 
-        elif address in range(DRR_START, PRR_START + DRR_LENGTH):
+        elif DRR_START <= address < (DRR_START + DRR_LENGTH):
             drr = self.CPU.GetDRR()
             page = drr & 0x7F #Select page for OTP or flash
             paged_location = (address - DRR_START) + DRR_LENGTH*page #Calculate location for OTP or flash
