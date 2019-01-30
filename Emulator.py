@@ -43,12 +43,23 @@ class Emulator():
         while True:
             self.UpdateControls()
             self.CPU.Step()
-  
+
+            #Force a known good configuration when using original OTP, to get it into Flash.
+            if self.CPU.PC == 0x5B8A:
+                self.CPU.MMU.StoreMemory(0x2F0, 0x00) #Set up destination addr to be 0x4000
+                self.CPU.MMU.StoreMemory(0x2F1, 0x40)
+                self.CPU.MMU.StoreMemory(0x34, 0xCD) #Set DRR to 0x78CD
+                self.CPU.MMU.StoreMemory(0x35, 0x78)
+                self.CPU.Push(0x02) #Provide PRRChange with PRR 0x7202
+                self.CPU.Push(0x72)
+                self.CPU.display.pixelPosition = 0 #Reset display
+                self.CPU.PC = 0x2E7 #Jump to PRRChange in RAM. The Original OTP should create this.
+    
             if self.CPU.PC in self.breakpoints:
                 print(f'Hit breakpont {self.CPU.PC:02X}')
                 self.CPU.PrintState()
-                #input()
+                input()
 if __name__ == '__main__':
-    emulator = Emulator('SimpleOTP.dat', 'nova_original.dat')
-    #emulator.SetBreakpoint(0x4000)
+    emulator = Emulator('OTP.dat', 'nova_original.dat')
+    #emulator.SetBreakpoint(0x2E7)
     emulator.Run()

@@ -12,8 +12,14 @@ class MMU():
         REGISTERS_START = 0x0
         REGISTERS_LENGTH = 0x80
 
+        BTREQ = 0x2B
+
         if REGISTERS_START <= address < (REGISTERS_START + REGISTERS_LENGTH):
-            self.CPU.memRegisters[address] = byte
+            if address == BTREQ:
+                byte = ~byte
+                self.CPU.memRegisters[address] &= byte
+            else:
+                self.CPU.memRegisters[address] = byte
 
         elif BRR_START <= address < (BRR_START + BRR_LENGTH): #BRR
             brr = self.CPU.GetBRR()

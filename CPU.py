@@ -1,8 +1,10 @@
 import struct
 from Display import Display
 from MMU import MMU
+import Interrupt
 class CPU():
     STACK_START = 0x100
+    IRR = 0x30 #PRR when interrupting
     PRR = 0x32 #controls 4000~7FFF
     DRR = 0x34 #controls 8000~FFFF
     BRR = 0x36 #controls 2000~3FFF
@@ -31,22 +33,34 @@ class CPU():
         self.RAM = bytearray(0x10000)
         self.videoRegisters = bytearray(0x2)
 
+        self.interrupted = False
+
         self.MMU = MMU(self)
+
+        self.resetVector = struct.unpack('<H', self.MMU.ReadMemory(0x7FFC, length=2))[0]
+
+        self.BTInterrupt = Interrupt.BTInterrupt(self)
+        self.BTVector = struct.unpack('<H', self.MMU.ReadMemory(0x7FEC, length=2))[0]
 
         self.Reset()
 
     def PrintState(self):
         print(f'A:{self.A} X:{self.X} Y:{self.Y} PC:{hex(self.PC)}')
-
+        
+    def GetIRR(self):
+        return struct.unpack('<H', self.MMU.ReadMemory(self.IRR, length=2))[0]
     def GetPRR(self):
-        return struct.unpack('<H', self.MMU.ReadMemory(self.PRR, length=2))[0]
+        if not self.interrupted:
+            return struct.unpack('<H', self.MMU.ReadMemory(self.PRR, length=2))[0]
+        else:
+            return self.GetIRR()
     def GetDRR(self):
         return struct.unpack('<H', self.MMU.ReadMemory(self.DRR, length=2))[0]
     def GetBRR(self):
         return struct.unpack('<H', self.MMU.ReadMemory(self.BRR, length=2))[0]
 
     def GetResetVector(self):
-        return struct.unpack('<H', self.MMU.ReadMemory(0x7FFC, length=2))[0]
+        return self.resetVector
     
     def Reset(self):
         self.i = True
@@ -55,7 +69,7 @@ class CPU():
         self.display = Display()
 
     def GetBTVector(self):
-        struct.unpack('<H', self.OTP[0x7FEC : 0x7FEF])[0]
+        return self.BTVector
 
     def WriteVideoRegister(self, address, byte):
 ##        print(f'Video write coming from {hex(self.PC)}')
@@ -245,6 +259,16 @@ class CPU():
             self.PrintState()
             print()
 
+        #interupts
+        interrupt_requested = self.BTInterrupt.Update()
+        if not self.i:
+            if not self.interrupted and interrupt_requested:
+                self.interrupted = True
+                self.PushShort(self.PC)
+                self.Push(self.ExportFlags())
+                self.PC = self.BTVector
+            
+
     def ASL_ZP(self):
         val = self.ZeroPageVal()
         self.c = bool(0b10000000 & val)
@@ -370,6 +394,13 @@ class CPU():
     def SEC(self):
         self.c = True
         self.PC += 1
+
+    def RTI(self):
+        flags = self.Pop()
+        self.ImportFlags(flags)
+        return_addr = self.PopShort()
+        self.PC = return_addr
+        self.interrupted = False
 
     def EOR_ZP(self):
         val = self.ZeroPageVal()
@@ -979,6 +1010,7 @@ OPCODES = {
         0x2E: CPU.ROL_A,
         0x2D: CPU.AND_A,
         0x38: CPU.SEC,
+        0x40: CPU.RTI,
         0x45: CPU.EOR_ZP,
         0x46: CPU.LSR_ZP,
         0x48: CPU.PHA,
