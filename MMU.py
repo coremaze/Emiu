@@ -14,6 +14,16 @@ class MMU():
 
         BTREQ = 0x2B
 
+        #hacky stuff; need to fix MMU and display to handle this properly
+        if self.CPU.PC != 0x5e27: #specific instance of ROM sending unknown data
+            if address == 0xA000:
+                self.CPU.display.RedNext = not self.CPU.display.RedNext
+                self.CPU.display.pixelPosition = 0
+            if address > 0x9000:
+                self.CPU.WriteVideoRegister(0x8000, 0x5C)
+                self.CPU.WriteVideoRegister(0x8001, 255-byte)
+                
+
         if REGISTERS_START <= address < (REGISTERS_START + REGISTERS_LENGTH):
             if address == BTREQ:
                 byte = ~byte
@@ -94,7 +104,7 @@ class MMU():
             elif brr & 0x8000 == 0x8000: #Internal RAM 0x2000~0x3FFF
                 byte = self.CPU.RAM[address] #Fall through
             else:
-                print('Invalid BRR mask')
+                raise Exception('Invalid BRR mask')
             
         elif PRR_START <= address < (PRR_START + PRR_LENGTH):
             prr = self.CPU.GetPRR()
@@ -109,7 +119,7 @@ class MMU():
             elif prr & 0x8000 == 0x8000: #Internal RAM 0x4000~0x7FFF
                 byte = self.CPU.RAM[address] #Fall through
             else:
-                print('Invalid PRR mask')
+                raise Exception('Invalid PRR mask')
 
         elif DRR_START <= address < (DRR_START + DRR_LENGTH):
             drr = self.CPU.GetDRR()
@@ -124,7 +134,7 @@ class MMU():
             elif drr & 0x8000 == 0x8000:
                 byte = self.CPU.RAM[address-DRR_START]
             else:
-                print(hex(self.CPU.PC), 'Invalid DRR mask', hex(drr))
+                raise Exception(hex(self.CPU.PC) + 'Invalid DRR mask' + hex(drr))
         else:
             byte = self.CPU.RAM[address]
 

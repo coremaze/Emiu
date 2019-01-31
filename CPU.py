@@ -33,19 +33,19 @@ class CPU():
         self.RAM = bytearray(0x10000)
         self.videoRegisters = bytearray(0x2)
 
-        self.interrupted = False
+        self.interrupted = True
 
         self.MMU = MMU(self)
 
-        self.resetVector = struct.unpack('<H', self.MMU.ReadMemory(0x7FFC, length=2))[0]
 
         self.BTInterrupt = Interrupt.BTInterrupt(self)
-        self.BTVector = struct.unpack('<H', self.MMU.ReadMemory(0x7FEC, length=2))[0]
 
         self.Reset()
 
+        self.interrupted = False
+
     def PrintState(self):
-        print(f'A:{self.A} X:{self.X} Y:{self.Y} PC:{hex(self.PC)}')
+        print(f'A:{self.A} X:{self.X} Y:{self.Y} PC:{self.PC:X} C:{self.c} Z:{self.z}')
         
     def GetIRR(self):
         return struct.unpack('<H', self.MMU.ReadMemory(self.IRR, length=2))[0]
@@ -60,7 +60,9 @@ class CPU():
         return struct.unpack('<H', self.MMU.ReadMemory(self.BRR, length=2))[0]
 
     def GetResetVector(self):
-        return self.resetVector
+        if not self.interrupted:
+            raise Exception("Can't get vector unless interrupted")
+        return struct.unpack('<H', self.MMU.ReadMemory(0x7FFC, length=2))[0]
     
     def Reset(self):
         self.i = True
@@ -69,14 +71,16 @@ class CPU():
         self.display = Display()
 
     def GetBTVector(self):
-        return self.BTVector
+        if not self.interrupted:
+            raise Exception("Can't get vector unless interrupted")
+        return struct.unpack('<H', self.MMU.ReadMemory(0x7FEC, length=2))[0]
 
     def WriteVideoRegister(self, address, byte):
 ##        print(f'Video write coming from {hex(self.PC)}')
         address %= 2
         self.videoRegisters[address] = byte
         if address == 0:
-            print(f'Command coming from {hex(self.PC)}: ')
+##            print(f'Command coming from {hex(self.PC)}: ')
             self.display.SendCommand(byte)
         else:
             #print(f'Data coming from {hex(self.PC)}: ', end='')
@@ -252,6 +256,9 @@ class CPU():
                 print(f'{hex(self.PC)} {OPCODES[opcode].__name__}')
             else:
                 print(f'{hex(self.PC)} {hex(opcode)}')
+                
+        if opcode not in OPCODES:
+            print(f'{self.PC:X}: opcode {opcode:X}')
         func = OPCODES[opcode]
         func(self)
         if verbose:
@@ -266,7 +273,7 @@ class CPU():
                 self.interrupted = True
                 self.PushShort(self.PC)
                 self.Push(self.ExportFlags())
-                self.PC = self.BTVector
+                self.PC = self.GetBTVector()
             
 
     def ASL_ZP(self):
@@ -317,6 +324,14 @@ class CPU():
         self.n = bool(self.A & 0b10000000)
         self.PC += 3
 
+    def BBR0(self):
+        val = self.ZeroPageVal()
+        self.PC += 1
+        ptr = self.RelativePtr()
+        self.PC += 2
+        if not val & 0b1:
+            self.PC = ptr
+
     def BPL(self):
         ptr = self.RelativePtr()
         if not self.n:
@@ -327,6 +342,14 @@ class CPU():
     def CLC(self):
         self.c = False
         self.PC += 1
+
+    def BBR1(self):
+        val = self.ZeroPageVal()
+        self.PC += 1
+        ptr = self.RelativePtr()
+        self.PC += 2
+        if not val & 0b10:
+            self.PC = ptr
 
     def JSR(self):
         arg = self.AbsolutePtr()
@@ -373,6 +396,14 @@ class CPU():
         self.A += int(old_carry)
         self.PC += 1
 
+    def BBR2(self):
+        val = self.ZeroPageVal()
+        self.PC += 1
+        ptr = self.RelativePtr()
+        self.PC += 2
+        if not val & 0b100:
+            self.PC = ptr
+
     def ROL_A(self):
         val = self.AbsoluteVal()
         old_carry = self.c
@@ -394,6 +425,14 @@ class CPU():
     def SEC(self):
         self.c = True
         self.PC += 1
+
+    def BBR3(self):
+        val = self.ZeroPageVal()
+        self.PC += 1
+        ptr = self.RelativePtr()
+        self.PC += 2
+        if not val & 0b1000:
+            self.PC = ptr
 
     def RTI(self):
         flags = self.Pop()
@@ -439,6 +478,8 @@ class CPU():
 
     def JMP_A(self):
         arg = self.AbsolutePtr()
+##        if self.PC<0x500:
+##            print(f'JMPing to {arg:X}')
         self.PC = arg
 
     def EOR_A(self):
@@ -458,6 +499,14 @@ class CPU():
         self.MMU.StoreMemory(ptr, val)
         self.PC += 3
 
+    def BBR4(self):
+        val = self.ZeroPageVal()
+        self.PC += 1
+        ptr = self.RelativePtr()
+        self.PC += 2
+        if not val & 0b10000:
+            self.PC = ptr
+
     def CLI(self):
         self.i = False
         self.PC += 1
@@ -465,7 +514,15 @@ class CPU():
     def PHY(self):
         self.Push(self.Y)
         self.PC += 1
-    
+
+    def BBR5(self):
+        val = self.ZeroPageVal()
+        self.PC += 1
+        ptr = self.RelativePtr()
+        self.PC += 2
+        if not val & 0b100000:
+            self.PC = ptr
+
     def RTS(self):
         return_addr = self.PopShort()
         self.PC = return_addr + 1
@@ -558,6 +615,14 @@ class CPU():
         self.n = bool(self.A & 0b10000000)
         self.PC += 3
 
+    def BBR6(self):
+        val = self.ZeroPageVal()
+        self.PC += 1
+        ptr = self.RelativePtr()
+        self.PC += 2
+        if not val & 0b1000000:
+            self.PC = ptr
+
     def SEI(self):
         self.i = True
         self.PC += 1
@@ -571,6 +636,14 @@ class CPU():
     def JMP_ABSOLUTE_INDEXED_INDIRECT(self):
         arg = self.AbsoluteIndexIndirectVal()
         self.PC = arg
+
+    def BBR7(self):
+        val = self.ZeroPageVal()
+        self.PC += 1
+        ptr = self.RelativePtr()
+        self.PC += 2
+        if not val & 0b10000000:
+            self.PC = ptr
 
     def BRA(self):
         ptr = self.RelativePtr()
@@ -604,6 +677,14 @@ class CPU():
         ptr = self.AbsolutePtr()
         self.MMU.StoreMemory(ptr, self.X)
         self.PC += 3
+
+    def BBS0(self):
+        val = self.ZeroPageVal()
+        self.PC += 1
+        ptr = self.RelativePtr()
+        self.PC += 2
+        if val & 0b1:
+            self.PC = ptr
 
     def BCC(self):
         arg = self.RelativePtr()
@@ -999,8 +1080,10 @@ OPCODES = {
         0x0A: CPU.ASL_ACC,
         0x0E: CPU.ASL_A,
         0x0D: CPU.ORA_A,
+        0x0F: CPU.BBR0,
         0x10: CPU.BPL,
         0x18: CPU.CLC,
+        0x1F: CPU.BBR1,
         0x20: CPU.JSR,
         0x24: CPU.BIT_ZP,
         0x26: CPU.ROL_ZP,
@@ -1008,8 +1091,10 @@ OPCODES = {
         0x29: CPU.AND_I,
         0x2A: CPU.ROL_ACC,
         0x2E: CPU.ROL_A,
+        0x2F: CPU.BBR2,
         0x2D: CPU.AND_A,
         0x38: CPU.SEC,
+        0x3F: CPU.BBR3,
         0x40: CPU.RTI,
         0x45: CPU.EOR_ZP,
         0x46: CPU.LSR_ZP,
@@ -1019,8 +1104,10 @@ OPCODES = {
         0x4C: CPU.JMP_A,
         0x4D: CPU.EOR_A,
         0x4E: CPU.LSR_A,
+        0x4F: CPU.BBR4,
         0x58: CPU.CLI,
         0x5A: CPU.PHY,
+        0x5F: CPU.BBR5,
         0x60: CPU.RTS,
         0x64: CPU.STZ_ZP,
         0x65: CPU.ADC_ZP,
@@ -1032,15 +1119,18 @@ OPCODES = {
         0x6C: CPU.JMP_I,
         0x6E: CPU.ROR_A,
         0x6D: CPU.ADC_A,
+        0x6F: CPU.BBR6,
         0x78: CPU.SEI,
         0x7A: CPU.PLY,
         0x7C: CPU.JMP_ABSOLUTE_INDEXED_INDIRECT,
+        0x7F: CPU.BBR7,
         0x80: CPU.BRA,
         0x8D: CPU.STA_A,
         0x85: CPU.STA_ZP,
         0x87: CPU.SMB0_ZP,
         0x88: CPU.DEY,
         0x8E: CPU.STX_A,
+        0x8F: CPU.BBS0,
         0x90: CPU.BCC,
         0x91: CPU.STA_INDIRECT_INDEXED,
         0x92: CPU.STA_IZP,
