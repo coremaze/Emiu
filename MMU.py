@@ -14,22 +14,7 @@ class MMU():
 
         BTREQ = 0x2B
 
-        
-##        #Implement DMA to do this properly
-##        if address >= 0xC000:
-##            position = (address - 0xC000) // 2
-##            self.CPU.display.pixelPosition = position
-##            if address % 2 == 0:
-##                self.CPU.display.RByte = 255-byte
-##            else:
-##                self.CPU.display.GBByte = 255-byte
-##                self.CPU.display.DrawCurrentPixel()
-####                print('drawing')
 
-                
-
-##        if address == self.CPU.DMA.DMOD:
-##            print(f'DMOD {byte:X}')
         if REGISTERS_START <= address < (REGISTERS_START + REGISTERS_LENGTH):
             if address == BTREQ:
                 byte = ~byte
