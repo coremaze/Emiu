@@ -2,6 +2,7 @@ import struct
 from Display import Display
 from MMU import MMU
 import Interrupt
+from DMA import DMA
 class CPU():
     STACK_START = 0x100
     IRR = 0x30 #PRR when interrupting
@@ -39,6 +40,7 @@ class CPU():
         self.interrupted = True
 
         self.MMU = MMU(self)
+        self.DMA = DMA(self)
 
         self.pre_interrupt_PRR = self.GetPRR()
 

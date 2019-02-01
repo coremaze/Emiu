@@ -54,6 +54,7 @@ class Display():
         self.width = 98
         self.height = 67
         self.scale = 2
+        self.inverse = False
         
         self.command = 0
         self.drawStartX = 0
@@ -69,6 +70,16 @@ class Display():
             command_name = COMMANDS[byte]
         else:
             command_name = 'Unknown'
+
+        if self.command == 0x75: #PASET
+            self.pixelPosition = 0
+        elif self.command == 0x15: #CASET
+            self.pixelPosition = 0
+        elif self.command == 0xA6: #Normal display
+            self.inverse = False
+        elif self.command == 0xA7: #Inverse display
+            self.inverse = True
+        
         print(f'Display command {hex(byte)} ({command_name})')
 
     def SendData(self, byte):
@@ -98,6 +109,9 @@ class Display():
         r *= 17
         g = ((self.GBByte & 0xF0) >> 4) * 17
         b = (self.GBByte & 0x0F) * 17
+
+        if not self.inverse:
+            r,g,b = tuple(map(lambda x: 255-x, (r,g,b)))
 
         pygame.draw.rect(self.screen, (r,g,b), (x*self.scale, y*self.scale, self.scale, self.scale))
 

@@ -15,23 +15,37 @@ class MMU():
         BTREQ = 0x2B
 
         
-        #Implement DMA to do this properly
-        if address >= 0xC000:
-            position = (address - 0xC000) // 2
-            self.CPU.display.pixelPosition = position
-            if address % 2 == 0:
-                self.CPU.display.RByte = 255-byte
-            else:
-                self.CPU.display.GBByte = 255-byte
-                self.CPU.display.DrawCurrentPixel()
-##                print('drawing')
+##        #Implement DMA to do this properly
+##        if address >= 0xC000:
+##            position = (address - 0xC000) // 2
+##            self.CPU.display.pixelPosition = position
+##            if address % 2 == 0:
+##                self.CPU.display.RByte = 255-byte
+##            else:
+##                self.CPU.display.GBByte = 255-byte
+##                self.CPU.display.DrawCurrentPixel()
+####                print('drawing')
 
                 
 
+##        if address == self.CPU.DMA.DMOD:
+##            print(f'DMOD {byte:X}')
         if REGISTERS_START <= address < (REGISTERS_START + REGISTERS_LENGTH):
             if address == BTREQ:
                 byte = ~byte
                 self.CPU.memRegisters[address] &= byte
+            elif address == self.CPU.DMA.DPTR:
+                self.CPU.DMA.SetDPTRL(byte)
+            elif address == self.CPU.DMA.DPTR+1:
+                self.CPU.DMA.SetDPTRH(byte)
+            elif address == self.CPU.DMA.DBKR:
+                self.CPU.DMA.SetDBKRL(byte)
+            elif address == self.CPU.DMA.DBKR+1:
+                self.CPU.DMA.SetDBKRH(byte)
+            elif address == self.CPU.DMA.DCNT:
+                self.CPU.DMA.SetDCNTL(byte)
+            elif address == self.CPU.DMA.DCNT+1:
+                self.CPU.DMA.SetDCNTH(byte)
             else:
                 self.CPU.memRegisters[address] = byte
 
@@ -93,7 +107,20 @@ class MMU():
         REGISTERS_START = 0x0
         REGISTERS_LENGTH = 0x80
         if REGISTERS_START <= address < (REGISTERS_START + REGISTERS_LENGTH):
-            byte = self.CPU.memRegisters[address]
+            if address == self.CPU.DMA.DPTR:
+                byte = self.CPU.DMA.GetDPTRL()
+            elif address == self.CPU.DMA.DPTR+1:
+                byte = self.CPU.DMA.GetDPTRH()
+            elif address == self.CPU.DMA.DBKR:
+                byte = self.CPU.DMA.GetDBKRL()
+            elif address == self.CPU.DMA.DBKR+1:
+                byte = self.CPU.DMA.GetDBKRH()
+            elif address == self.CPU.DMA.DCNT:
+                byte = self.CPU.DMA.GetDCNTL()
+            elif address == self.CPU.DMA.DCNT+1:
+                byte = self.CPU.DMA.GetDCNTH()
+            else:
+                byte = self.CPU.memRegisters[address]
             
         elif BRR_START <= address < (BRR_START + BRR_LENGTH): #BRR
             brr = self.CPU.GetBRR()

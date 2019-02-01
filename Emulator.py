@@ -80,5 +80,5 @@ class Emulator():
                     
 if __name__ == '__main__':
     emulator = Emulator('OTP.dat', 'Cloe 1.02.dat')
-    #emulator.SetBreakpoint(0x0000)
+    #emulator.SetBreakpoint(0x6427)
     emulator.Run()
