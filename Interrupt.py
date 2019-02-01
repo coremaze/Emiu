@@ -56,7 +56,18 @@ class BTInterrupt(Interrupt):
 
         if BTREQ_data:
             #print(bin(BTEN_data), bin(BTREQ_data))
-            return False
+            return True
         
         return False
+
+class PTInterrupt(Interrupt):
+    def __init__(self):
+        self.triggered = False
+    def Update(self):
+        return False #disable for now
+        if self.triggered: #todo: check if enabled
+            self.triggered = False
+            return False
+        return False
+        
 

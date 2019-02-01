@@ -14,14 +14,18 @@ class MMU():
 
         BTREQ = 0x2B
 
-        #hacky stuff; need to fix MMU and display to handle this properly
-        if self.CPU.PC != 0x5e27: #specific instance of ROM sending unknown data
-            if address == 0xA000:
-                self.CPU.display.RedNext = not self.CPU.display.RedNext
-                self.CPU.display.pixelPosition = 0
-            if address > 0x9000:
-                self.CPU.WriteVideoRegister(0x8000, 0x5C)
-                self.CPU.WriteVideoRegister(0x8001, 255-byte)
+        
+        #Implement DMA to do this properly
+        if address >= 0xC000:
+            position = (address - 0xC000) // 2
+            self.CPU.display.pixelPosition = position
+            if address % 2 == 0:
+                self.CPU.display.RByte = 255-byte
+            else:
+                self.CPU.display.GBByte = 255-byte
+                self.CPU.display.DrawCurrentPixel()
+##                print('drawing')
+
                 
 
         if REGISTERS_START <= address < (REGISTERS_START + REGISTERS_LENGTH):
