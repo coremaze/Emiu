@@ -3,6 +3,8 @@ from Display import Display
 from MMU import MMU
 import Interrupt
 from DMA import DMA
+from Controller import Controller
+
 class CPU():
     STACK_START = 0x100
     IRR = 0x30 #PRR when interrupting
@@ -19,7 +21,7 @@ class CPU():
         self.c = False #Carry
         self.z = False #Zero
         self.i = False #Interrupt Disable
-        self.d = False #Decimal Mode
+        self.d = False #Decimal Mode  TODO: Implement decimal mode with ADC and SBC
         self.b = False #Break Command
         self.v = False #Overflow
         self.n = False #Negative
@@ -35,7 +37,7 @@ class CPU():
         self.videoRegisters = bytearray(0x2)
 
 
-        
+        self.controller = Controller(self)
         
         self.interrupted = True
 
@@ -46,7 +48,7 @@ class CPU():
 
 
         self.BTInterrupt = Interrupt.BTInterrupt(self)
-        self.PTInterrupt = Interrupt.PTInterrupt()
+        self.PTInterrupt = Interrupt.PTInterrupt(self)
 
         self.Reset()
 
@@ -215,7 +217,7 @@ class CPU():
     
     def IndirectIndexedPtr(self):
         pointer = self.MMU.ReadMemory(self.PC + 1)
-        pointer = self.MMU.ReadMemory(pointer) + self.Y
+        pointer = (struct.unpack('<H', self.MMU.ReadMemory(pointer, length=2))[0] + self.Y) & 0xFFFF
         return pointer
     def IndirectIndexedVal(self):
         pointer = self.IndirectIndexedPtr()
@@ -281,6 +283,7 @@ class CPU():
         self.c = bool(flags & 0b00000001)
 
     def Step(self, verbose = False):
+        self.controller.Update()
         opcode = self.MMU.ReadMemory(self.PC)
         if verbose:
             if opcode in OPCODES:
@@ -320,6 +323,13 @@ class CPU():
         val &= 0xFF
         self.z = val == 0
         self.n = bool(val & 0b10000000)
+        ptr = self.ZeroPagePtr()
+        self.MMU.StoreMemory(ptr, val)
+        self.PC += 2
+
+    def RMB0_ZP(self):
+        val = self.ZeroPageVal()
+        val &= 0b11111110
         ptr = self.ZeroPagePtr()
         self.MMU.StoreMemory(ptr, val)
         self.PC += 2
@@ -376,6 +386,13 @@ class CPU():
         else:
             self.PC += 2
 
+    def RMB1_ZP(self):
+        val = self.ZeroPageVal()
+        val &= 0b11111101
+        ptr = self.ZeroPagePtr()
+        self.MMU.StoreMemory(ptr, val)
+        self.PC += 2
+
     def CLC(self):
         self.c = False
         self.PC += 1
@@ -423,6 +440,13 @@ class CPU():
         val <<= 1
         val &= 0xFF
         val += int(old_carry)
+        ptr = self.ZeroPagePtr()
+        self.MMU.StoreMemory(ptr, val)
+        self.PC += 2
+
+    def RMB2_ZP(self):
+        val = self.ZeroPageVal()
+        val &= 0b11111011
         ptr = self.ZeroPagePtr()
         self.MMU.StoreMemory(ptr, val)
         self.PC += 2
@@ -478,7 +502,14 @@ class CPU():
             ptr = self.RelativePtr()
             self.PC = ptr
         else:
-            self.PC += 2   
+            self.PC += 2
+
+    def RMB3_ZP(self):
+        val = self.ZeroPageVal()
+        val &= 0b11110111
+        ptr = self.ZeroPagePtr()
+        self.MMU.StoreMemory(ptr, val)
+        self.PC += 2
         
     def SEC(self):
         self.c = True
@@ -523,6 +554,12 @@ class CPU():
         self.MMU.StoreMemory(ptr, val)
         self.PC += 2
 
+    def RMB4_ZP(self):
+        val = self.ZeroPageVal()
+        val &= 0b11101111
+        ptr = self.ZeroPagePtr()
+        self.MMU.StoreMemory(ptr, val)
+        self.PC += 2
     def PHA(self):
         self.Push(self.A)
         self.PC += 1
@@ -571,6 +608,13 @@ class CPU():
         self.PC += 2
         if not val & 0b10000:
             self.PC = ptr
+
+    def RMB5_ZP(self):
+        val = self.ZeroPageVal()
+        val &= 0b11011111
+        ptr = self.ZeroPagePtr()
+        self.MMU.StoreMemory(ptr, val)
+        self.PC += 2
 
     def CLI(self):
         self.i = False
@@ -697,6 +741,13 @@ class CPU():
         self.n = bool(self.A & 0b10000000)
         self.PC += 2
 
+    def RMB7_ZP(self):
+        val = self.ZeroPageVal()
+        val &= 0b01111111
+        ptr = self.ZeroPagePtr()
+        self.MMU.StoreMemory(ptr, val)
+        self.PC += 2
+        
     def SEI(self):
         self.i = True
         self.PC += 1
@@ -819,6 +870,14 @@ class CPU():
         self.MMU.StoreMemory(ptr, 0)
         self.PC += 3
 
+    def BBS1(self):
+        val = self.ZeroPageVal()
+        self.PC += 1
+        ptr = self.RelativePtr()
+        self.PC += 2
+        if val & 0b10:
+            self.PC = ptr
+
     def LDY_I(self):
         val = self.ImmediateVal()
         self.Y = val
@@ -881,6 +940,21 @@ class CPU():
         self.n = bool(self.A & 0b10000000)
         self.PC += 3
 
+    def LDX_A(self):
+        val = self.AbsoluteVal()
+        self.X = val
+        self.z = self.X == 0
+        self.n = bool(self.X & 0b10000000)
+        self.PC += 3
+
+    def BBS2(self):
+        val = self.ZeroPageVal()
+        self.PC += 1
+        ptr = self.RelativePtr()
+        self.PC += 2
+        if val & 0b100:
+            self.PC = ptr
+
     def BCS(self):
         ptr = self.RelativePtr()
         if self.c:
@@ -930,6 +1004,14 @@ class CPU():
         self.z = self.Y == 0
         self.n = bool(self.A & 0b10000000)
         self.PC += 3
+
+    def BBS3(self):
+        val = self.ZeroPageVal()
+        self.PC += 1
+        ptr = self.RelativePtr()
+        self.PC += 2
+        if val & 0b00001000:
+            self.PC = ptr
         
     def CPY_I(self):
         arg = self.ImmediateVal()
@@ -953,6 +1035,12 @@ class CPU():
         self.MMU.StoreMemory(ptr, val)
         self.PC += 2
 
+    def SMB4_ZP(self):
+        val = self.ZeroPageVal()
+        val |= 0b00010000
+        ptr = self.ZeroPagePtr()
+        self.MMU.StoreMemory(ptr, val)
+        self.PC += 2
     def INY(self):
         self.Y += 1
         self.Y &= 0xFF
@@ -1017,6 +1105,17 @@ class CPU():
         self.MMU.StoreMemory(ptr, val)
         self.PC += 2
 
+    def SMB5_ZP(self):
+        val = self.ZeroPageVal()
+        val |= 0b00100000
+        ptr = self.ZeroPagePtr()
+        self.MMU.StoreMemory(ptr, val)
+        self.PC += 2
+
+    def CLD(self):
+        self.d = False
+        self.PC += 1
+
     def PHX(self):
         self.Push(self.X)
         self.PC += 1
@@ -1038,6 +1137,22 @@ class CPU():
         self.MMU.StoreMemory(ptr, val)
         self.PC += 3
 
+    def BBS4(self):
+        val = self.ZeroPageVal()
+        self.PC += 1
+        ptr = self.RelativePtr()
+        self.PC += 2
+        if val & 0b00010000:
+            self.PC = ptr
+
+    def BBS5(self):
+        val = self.ZeroPageVal()
+        self.PC += 1
+        ptr = self.RelativePtr()
+        self.PC += 2
+        if val & 0b00100000:
+            self.PC = ptr
+            
     def CPX_I(self):
         arg = self.ImmediateVal()
         self.c = self.X >= arg
@@ -1135,6 +1250,14 @@ class CPU():
         self.MMU.StoreMemory(ptr, val)
         self.PC += 3
 
+    def BBS6(self):
+        val = self.ZeroPageVal()
+        self.PC += 1
+        ptr = self.RelativePtr()
+        self.PC += 2
+        if val & 0b01000000:
+            self.PC = ptr
+            
     def BEQ(self):
         arg = self.RelativePtr()
         if self.z:
@@ -1159,15 +1282,27 @@ class CPU():
         self.MMU.StoreMemory(ptr, val)
         self.PC += 2
 
+    def SED(self):
+        self.d = True
+        self.PC += 1
+
     def PLX(self):
         self.X = self.Pop()
         self.z = self.X == 0 #Reference says A
         self.n = bool(self.X & 0b10000000) #Reference says A
         self.PC += 1
-        
+
+    def BBS7(self):
+        val = self.ZeroPageVal()
+        self.PC += 1
+        ptr = self.RelativePtr()
+        self.PC += 2
+        if val & 0b10000000:
+            self.PC = ptr
     
 OPCODES = {
         0x06: CPU.ASL_ZP,
+        0x07: CPU.RMB0_ZP,
         0x08: CPU.PHP,
         0x09: CPU.ORA_I,
         0x0A: CPU.ASL_ACC,
@@ -1175,6 +1310,7 @@ OPCODES = {
         0x0D: CPU.ORA_A,
         0x0F: CPU.BBR0,
         0x10: CPU.BPL,
+        0x17: CPU.RMB1_ZP,
         0x18: CPU.CLC,
         0x1D: CPU.ORA_AX,
         0x1F: CPU.BBR1,
@@ -1182,6 +1318,7 @@ OPCODES = {
         0x24: CPU.BIT_ZP,
         0x25: CPU.AND_ZP,
         0x26: CPU.ROL_ZP,
+        0x27: CPU.RMB2_ZP,
         0x28: CPU.PLP,
         0x29: CPU.AND_I,
         0x2A: CPU.ROL_ACC,
@@ -1189,12 +1326,14 @@ OPCODES = {
         0x2F: CPU.BBR2,
         0x2D: CPU.AND_A,
         0x30: CPU.BMI,
+        0x37: CPU.RMB3_ZP,
         0x38: CPU.SEC,
         0x3D: CPU.AND_AX,
         0x3F: CPU.BBR3,
         0x40: CPU.RTI,
         0x45: CPU.EOR_ZP,
         0x46: CPU.LSR_ZP,
+        0x47: CPU.RMB4_ZP,
         0x48: CPU.PHA,
         0x49: CPU.EOR_I,
         0x4A: CPU.LSR_ACC,
@@ -1202,6 +1341,7 @@ OPCODES = {
         0x4D: CPU.EOR_A,
         0x4E: CPU.LSR_A,
         0x4F: CPU.BBR4,
+        0x57: CPU.RMB5_ZP,
         0x58: CPU.CLI,
         0x5A: CPU.PHY,
         0x5F: CPU.BBR5,
@@ -1218,6 +1358,7 @@ OPCODES = {
         0x6D: CPU.ADC_A,
         0x6F: CPU.BBR6,
         0x71: CPU.ADC_INDIRECT_INDEXED,
+        0x77: CPU.RMB7_ZP,
         0x78: CPU.SEI,
         0x7A: CPU.PLY,
         0x7C: CPU.JMP_ABSOLUTE_INDEXED_INDIRECT,
@@ -1240,6 +1381,7 @@ OPCODES = {
         0x9C: CPU.STZ_A,
         0x9D: CPU.STA_AX,
         0x9E: CPU.STZ_AX,
+        0x9F: CPU.BBS1,
         0xA0: CPU.LDY_I,
         0xA1: CPU.LDA_INDEXED_INDIRECT,
         0xA2: CPU.LDX_I,
@@ -1250,6 +1392,8 @@ OPCODES = {
         0xA9: CPU.LDA_I,
         0xAA: CPU.TAX,
         0xAD: CPU.LDA_A,
+        0xAE: CPU.LDX_A,
+        0xAF: CPU.BBS2,
         0xB0: CPU.BCS,
         0xB1: CPU.LDA_INDIRECT_INDEXED,
         0xB2: CPU.LDA_IZP,
@@ -1257,20 +1401,26 @@ OPCODES = {
         0xB9: CPU.LDA_AY,
         0xBC: CPU.LDY_AX,
         0xBD: CPU.LDA_AX,
+        0xBF: CPU.BBS3,
         0xC0: CPU.CPY_I,
         0xC4: CPU.CPY_ZP,
         0xC6: CPU.DEC_ZP,
+        0xC7: CPU.SMB4_ZP,
         0xC8: CPU.INY,
         0xC9: CPU.CMP_I,
         0xCA: CPU.DEX,
         0xCB: CPU.WAI,
         0xCC: CPU.CPY_A,
         0xCE: CPU.DEC_A,
+        0xCF: CPU.BBS4,
         0xD0: CPU.BNE,
         0xD6: CPU.DEC_ZPX,
+        0xD7: CPU.SMB5_ZP,
+        0xD8: CPU.CLD,
         0xDA: CPU.PHX,
         0xDD: CPU.CMP_AX,
         0xDE: CPU.DEC_AX,
+        0xDF: CPU.BBS5,
         0xE0: CPU.CPX_I,
         0xE4: CPU.CPX_ZP,
         0xE5: CPU.SBC_ZP, #check
@@ -1282,10 +1432,13 @@ OPCODES = {
         0xEC: CPU.CPX_A,
         0xED: CPU.SBC_A, #check
         0xEE: CPU.INC_A,
+        0xEF: CPU.BBS6,
         0xF0: CPU.BEQ,
         0xF6: CPU.INC_ZPX,
         0xF7: CPU.SMB7_ZP,
-        0xFA: CPU.PLX
+        0xF8: CPU.SED,
+        0xFA: CPU.PLX,
+        0xFF: CPU.BBS7
         
         }
         

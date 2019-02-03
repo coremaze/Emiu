@@ -14,7 +14,6 @@ class MMU():
 
         BTREQ = 0x2B
 
-
         if REGISTERS_START <= address < (REGISTERS_START + REGISTERS_LENGTH):
             if address == BTREQ:
                 byte = ~byte
@@ -62,7 +61,7 @@ class MMU():
             elif prr & 0x8000 == 0x8000: #Internal RAM 0x4000~0x7FFF
                 self.CPU.RAM[address] = byte #Fall through
             else:
-                raise Exception('Invalid PRR mask')
+                raise Exception(f'Invalid PRR mask: {self.CPU.GetPRR():X}')
 
         elif DRR_START <= address < (DRR_START + DRR_LENGTH):
             drr = self.CPU.GetDRR()
@@ -135,7 +134,7 @@ class MMU():
             elif prr & 0x8000 == 0x8000: #Internal RAM 0x4000~0x7FFF
                 byte = self.CPU.RAM[address] #Fall through
             else:
-                raise Exception('Invalid PRR mask')
+                raise Exception(f'Invalid PRR mask: {self.CPU.GetPRR():X}')
 
         elif DRR_START <= address < (DRR_START + DRR_LENGTH):
             drr = self.CPU.GetDRR()

@@ -130,6 +130,7 @@ class DMA():
 
             self.CPU.MMU.StoreMemory(self.destPtr, new_byte)
 
+            #print(f'{source_mode:X} {dest_mode:X} {count:X} {func:X}')
             #Pointer modes
             if source_mode == 0b00: #Continue mode
                 self.sourcePtr += 1

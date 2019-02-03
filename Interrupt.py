@@ -47,27 +47,42 @@ class BTInterrupt(Interrupt):
             BTREQ_data |= 0b10000
         if old_clock // 16 < self.clock // 16: #512 Hz
             BTREQ_data |= 0b100000
-        if old_clock // 4 < self.clock // 4: #2048 Hz
-            BTREQ_data |= 0b1000000
-        BTREQ_data |= 0b10000000 #8192 Hz
+##        if old_clock // 4 < self.clock // 4: #2048 Hz #This caused problems because an interrupt handler wasn't clearing it.
+##            BTREQ_data |= 0b1000000
+##        BTREQ_data |= 0b10000000 #8192 Hz
 
         BTREQ_data &= BTEN_data
         self.CPU.memRegisters[BTREQ] = BTREQ_data
 
         if BTREQ_data:
-            #print(bin(BTEN_data), bin(BTREQ_data))
             return True
         
         return False
 
-class PTInterrupt(Interrupt):
-    def __init__(self):
+
+class PTInterrupt(Interrupt): #Port-A transition interrupt
+    def __init__(self, cpu):
+        self.CPU = cpu
         self.triggered = False
+    def Trigger(self):
+        self.triggered = True
     def Update(self):
-        return False #disable for now
-        if self.triggered: #todo: check if enabled
+        IREQL_data = self.CPU.memRegisters[IREQL]
+        if self.triggered:
+            IREQL_data |= 0b00100000
+        else:
+            IREQL_data &= 0b11011111
+        
+        if self.triggered:
             self.triggered = False
-            return False
+
+            IENAL_data = self.CPU.memRegisters[IENAL]
+            IEPT = IENAL_data & 0b00100000
+            if IEPT:
+                return True
+            else:
+                return False
+        
         return False
         
 
