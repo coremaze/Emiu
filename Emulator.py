@@ -22,8 +22,7 @@ class Emulator():
                 self.CPU.PrintState()
                 input()
 
-                    
 if __name__ == '__main__':
-    emulator = Emulator('OTP.dat', 'nova_original.dat')
+    emulator = Emulator('OTP.dat', 'Cloe 1.02.dat')
     #emulator.SetBreakpoint(0x423E)
     emulator.Run()

@@ -438,8 +438,8 @@ class CPU():
         old_carry = self.c
         self.c = bool(val & 0b10000000)
         val <<= 1
-        val &= 0xFF
         val += int(old_carry)
+        val &= 0xFF
         ptr = self.ZeroPagePtr()
         self.MMU.StoreMemory(ptr, val)
         self.PC += 2
@@ -467,8 +467,8 @@ class CPU():
         old_carry = self.c
         self.c = bool(self.A & 0b10000000)
         self.A <<= 1
-        self.A &= 0xFF
         self.A += int(old_carry)
+        self.A &= 0xFF
         self.PC += 1
 
     def BBR2(self):
@@ -484,8 +484,8 @@ class CPU():
         old_carry = self.c
         self.c = bool(val & 0b10000000)
         val <<= 1
-        val &= 0xFF
         val += int(old_carry)
+        val &= 0xFF
         ptr = self.AbsolutePtr()
         self.MMU.StoreMemory(ptr, val)
         self.PC += 3 
@@ -660,6 +660,7 @@ class CPU():
         else:
             val &= 0b01111111
         self.n = bool(val & 0b10000000)
+        self.z = bool(val == 0)
         ptr = self.ZeroPagePtr()
         self.MMU.StoreMemory(ptr, val)
         self.PC += 2
@@ -695,6 +696,7 @@ class CPU():
         else:
             self.A &= 0b01111111
         self.n = bool(self.A & 0b10000000)
+        self.z = bool(self.A == 0)
         self.PC += 1
         
     def JMP_I(self):
@@ -711,6 +713,7 @@ class CPU():
         else:
             val &= 0b01111111
         self.n = bool(val & 0b10000000)
+        self.z = bool(val == 0)
         ptr = self.AbsolutePtr()
         self.MMU.StoreMemory(ptr, val)
         self.PC += 3
@@ -1078,6 +1081,13 @@ class CPU():
         self.n = self.Y < val
         self.PC += 3
 
+    def CMP_A(self):
+        val = self.AbsoluteVal()
+        self.c = self.A >= val
+        self.z = self.A == val
+        self.n = self.A < val
+        self.PC += 3
+
     def DEC_A(self):
         val = self.AbsoluteVal()
         val -= 1
@@ -1169,15 +1179,15 @@ class CPU():
 
     def SBC_ZP(self):
         val = self.ZeroPageVal()
-        self.A -= val
         if not self.c:
-            self.A -= 1
-        if self.A < -127:
-            self.v = True
-        else:
-            self.v = False
+            val += 1
+        self.c = self.A >= val
+        self.A -= val
+        isNegative = self.A < 0
         self.A &= 0xFF
+        self.n = bool(self.A & 0x10000000)
         self.z = self.A == 0
+        self.v = isNegative != self.n
         self.PC += 2
 
     def INC_ZP(self):
@@ -1206,15 +1216,15 @@ class CPU():
 
     def SBC_I(self):
         val = self.ImmediateVal()
-        self.A -= val
         if not self.c:
-            self.A -= 1
-        if self.A < -127:
-            self.v = True
-        else:
-            self.v = False
+            val += 1
+        self.c = self.A >= val
+        self.A -= val
+        isNegative = self.A < 0
         self.A &= 0xFF
+        self.n = bool(self.A & 0x10000000)
         self.z = self.A == 0
+        self.v = isNegative != self.n
         self.PC += 2
 
     def NOP(self):
@@ -1229,15 +1239,15 @@ class CPU():
 
     def SBC_A(self):
         val = self.AbsoluteVal()
-        self.A -= val
         if not self.c:
-            self.A -= 1
-        if self.A < -127:
-            self.v = True
-        else:
-            self.v = False
+            val += 1
+        self.c = self.A >= val
+        self.A -= val
+        isNegative = self.A < 0
         self.A &= 0xFF
+        self.n = bool(self.A & 0x10000000)
         self.z = self.A == 0
+        self.v = isNegative != self.n
         self.PC += 3
 
     def INC_A(self):
@@ -1411,6 +1421,7 @@ OPCODES = {
         0xCA: CPU.DEX,
         0xCB: CPU.WAI,
         0xCC: CPU.CPY_A,
+        0xCD: CPU.CMP_A,
         0xCE: CPU.DEC_A,
         0xCF: CPU.BBS4,
         0xD0: CPU.BNE,

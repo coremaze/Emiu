@@ -48,6 +48,7 @@ class Controller():
 
 
         if (controls1 != self.controls1) or (controls2 != self.controls2):
+            #print(hex(self.CPU.MMU.ReadMemory(0xFA)))
             self.CPU.PTInterrupt.Trigger()
 
         self.controls1 = controls1
