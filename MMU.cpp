@@ -7,6 +7,10 @@ MMU::MMU(CPU* cpu){
 }
 
 void MMU::StoreByte(unsigned short address, BYTE by){
+
+    //if (address== 0x8000){
+    //    printf("0x8000 from %04X\n writing %02X\n", this->cpu->PC, (unsigned int)by);
+    //}
     if ((address >= REGISTERS_START) && (address < (REGISTERS_START + REGISTERS_LENGTH))){ //Register?
         if (address == BTREQ){
             by = ~by;
@@ -42,7 +46,7 @@ void MMU::StoreByte(unsigned short address, BYTE by){
             this->cpu->OTP[paged_location % OTP_SIZE] = by;
         }
         else if ( (brr & 0b1001111100000000) == 0b1100000000 ){ //Video Registers?
-            //IMPLEMENT WRITEVIDEOREGISTER
+            this->cpu->WriteVideoRegister(address, by);
         }
         else if ( (brr & 0b1001110000000000) == 0b10000000000 ){ //Flash?
             this->cpu->Flash[paged_location % FLASH_SIZE] = by;
@@ -62,7 +66,7 @@ void MMU::StoreByte(unsigned short address, BYTE by){
             this->cpu->OTP[paged_location % OTP_SIZE] = by;
         }
         else if ( (prr & 0b1000111110000000) == 0b110000000 ){ //Video Registers?
-            //IMPLEMENT WRITEVIDEOREGISTER
+            this->cpu->WriteVideoRegister(address, by);
         }
         else if ( (prr & 0b1000111000000000) == 0b1000000000 ){ //Flash?
             this->cpu->Flash[paged_location % FLASH_SIZE] = by;
@@ -88,7 +92,7 @@ void MMU::StoreByte(unsigned short address, BYTE by){
             this->cpu->Flash[paged_location % FLASH_SIZE] = by;
         }
         else if ( (drr & 0x8000) == 0x8000 ){ //Internal RAM 0x2000 ~ 0x3FFF
-            this->cpu->RAM[address] = by; //Fall through
+            //this->cpu->RAM[address] = by; //Fall through
         }
         else {
             printf("Invalid DRR mask: %04X", this->cpu->GetDRR());

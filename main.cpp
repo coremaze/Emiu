@@ -15,26 +15,28 @@ void HexDump(unsigned char* bin, unsigned int start, unsigned int end) {
 int main(int argc, char *argv[])
 {
     CPU* cpu = new CPU("OTP.dat", "nova_original.dat");
-    //cpu->mmu->StoreShort(0x32, 0x1234);
 
-    cpu->PrintState();
+    cpu->display->Update();
+    Sleep(1000); //give time to hold keys if desired
 
-    while (!cpu->Step()){
+    bool stepping = false;
+    while (!cpu->Step() && !cpu->display->Update()){
+        cpu->mmu->StoreShort(0, 0xFFFF);
         //cpu->PrintState();
-        cpu->display->Update();
+        if (stepping){
+                cpu->PrintState();
+                std::cin.get();
+        }
+
+
+        /*if (cpu->PC == 0x5A41){
+                stepping = true;
+                cpu->PrintState();
+                printf("%04X ", (unsigned int)cpu->mmu->ReadShort(0xAC));
+        }*/
 
     }
-    cpu->PrintState();
+    //cpu->PrintState();
 
-    //Display* display = new Display();
-    //display->SendCommand(0x5C);
-    //display->SendData(0xFF);
-    //display->SendData(0xFF);
-    //while (1){
-    //    if (display->Update()){
-    //        break;
-    //    }
-    //}
-    Sleep(1000);
     return 0;
 }

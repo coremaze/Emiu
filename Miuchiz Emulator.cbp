@@ -24,8 +24,17 @@
 			<Add option="-fexceptions" />
 		</Compiler>
 		<Unit filename="CPU.cpp" />
+		<Unit filename="CPU.h" />
+		<Unit filename="Controller.cpp" />
+		<Unit filename="Controller.h" />
+		<Unit filename="DMA.cpp" />
+		<Unit filename="DMA.h" />
 		<Unit filename="Display.cpp" />
+		<Unit filename="Display.h" />
+		<Unit filename="MMU.cpp" />
+		<Unit filename="MMU.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="main.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />

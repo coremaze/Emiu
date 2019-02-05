@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1549326512 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\main.cpp
+1549394545 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\main.cpp
 	<windows.h>
 	"main.h"
 	"Display.h"
@@ -12,7 +12,7 @@
 	<GL/gl.h>
 	<GL/glu.h>
 
-1549326172 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\display.cpp
+1549346616 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\display.cpp
 	"Display.h"
 
 1549290239 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\display.cpp
@@ -361,36 +361,46 @@
 	"begin_code.h"
 	"close_code.h"
 
-1549326471 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\cpu.cpp
+1549392952 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\cpu.cpp
 	<windows.h>
 	"CPU.h"
 	"Display.h"
 	"MMU.h"
 	"DMA.h"
+	"Controller.h"
 
 1549253443 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\cpu.cpp
 	"Display.cpp"
 
-1549294677 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\display.h
+1549392048 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\display.h
 	"SDL2/include/SDL2/SDL.h"
+	<windows.h>
 	<iostream>
 
 1549303429 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\main.h
 
-1549325410 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\cpu.h
+1549392948 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\cpu.h
 
 1549309570 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\mmu.h
 
-1549326488 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\mmu.cpp
+1549395141 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\mmu.cpp
 	"MMU.h"
 	"CPU.h"
 	"DMA.h"
 	<iostream>
 
-1549309509 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\dma.cpp
+1549333839 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\dma.cpp
 	"CPU.h"
 	"DMA.h"
 	"MMU.h"
 
 1549307349 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\dma.h
+
+1549392673 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\controller.cpp
+	"Controller.h"
+	"CPU.h"
+	"MMU.h"
+
+1549343030 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\controller.h
+	"SDL2/include/SDL2/SDL.h"
 

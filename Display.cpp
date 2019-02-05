@@ -1,5 +1,5 @@
 #include "Display.h"
-
+#define FPS 60
 Display::Display(){
     this->RedNext = true;
     this->RByte = 0;
@@ -10,6 +10,8 @@ Display::Display(){
     this->scale = SCALE;
     this->inverse = false;
 
+    this->lastUpdateTime = timeGetTime();
+
     this->command = 0;
 
     this->maxPixelPosition = this->width * this->height;
@@ -18,20 +20,26 @@ Display::Display(){
     SDL_Init(SDL_INIT_EVERYTHING);
     this->window = SDL_CreateWindow("Miuchiz", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, this->width*this->scale, this->height*this->scale, SDL_WINDOW_SHOWN);
     this->renderer = SDL_CreateRenderer(window, -1, 0);
-    SDL_SetRenderDrawColor(this->renderer, 0, 255, 0, 255);
+    SDL_SetRenderDrawColor(this->renderer, 0, 0, 0, 0);
     SDL_RenderClear(this->renderer);
 }
 
 bool Display::Update(){
-    SDL_RenderPresent(this->renderer);
-    if (SDL_PollEvent(&this->event) && this->event.type == SDL_QUIT){
+
+    unsigned int this_time = timeGetTime();
+    unsigned int delta_time = this_time - this->lastUpdateTime;
+    if (delta_time > (1000/FPS)){
+        this->lastUpdateTime = this_time;
+        SDL_RenderPresent(this->renderer);
+        if (SDL_PollEvent(&this->event) && this->event.type == SDL_QUIT){
         return true;
+        }
     }
     return false;
 }
 
 void Display::DrawRectangle(BYTE r, BYTE g, BYTE b, unsigned int x, unsigned int y, unsigned int rectWidth, unsigned int rectHeight){
-    SDL_SetRenderDrawColor(this->renderer, 0, r, g, b);
+    SDL_SetRenderDrawColor(this->renderer, r, g, b, 255);
     for (unsigned int i=x; i<(x+rectWidth); i++){
         for (unsigned int j=y; j<(y+rectHeight); j++){
             SDL_RenderDrawPoint(this->renderer, i, j);
@@ -60,7 +68,7 @@ void Display::SendData(BYTE by) {
         this->AddPixelData(by);
     }
     else {
-        printf("Unused data for command %02X: %02X\n", (unsigned int)this->command, (unsigned int)by);
+        //printf("Unused data for command %02X: %02X\n", (unsigned int)this->command, (unsigned int)by);
     }
 }
 

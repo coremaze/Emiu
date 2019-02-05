@@ -3,11 +3,12 @@
 
 #define SDL_MAIN_HANDLED
 #include "SDL2/include/SDL2/SDL.h"
+#include <windows.h>
 #define BYTE unsigned char
 #include <iostream>
 #define HEIGHT 67
 #define WIDTH 98
-#define SCALE 2
+#define SCALE 4
 
 
 class Display {
@@ -23,6 +24,7 @@ class Display {
     unsigned char command;
 
     unsigned int maxPixelPosition;
+    unsigned int lastUpdateTime;
 
     //SDL
     SDL_Event event;
