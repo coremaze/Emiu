@@ -92,7 +92,7 @@ void MMU::StoreByte(unsigned short address, BYTE by){
             this->cpu->Flash[paged_location % FLASH_SIZE] = by;
         }
         else if ( (drr & 0x8000) == 0x8000 ){ //Internal RAM 0x2000 ~ 0x3FFF
-            //this->cpu->RAM[address] = by; //Fall through
+            this->cpu->RAM[address] = by; //Fall through
         }
         else {
             printf("Invalid DRR mask: %04X", this->cpu->GetDRR());
