@@ -5,6 +5,9 @@ class MMU;
 class DMA;
 class Controller;
 
+class BTInterrupt;
+
+
 #define STACK_START 0x100
 #define IRR 0x30
 #define PRR 0x32
@@ -47,8 +50,9 @@ public:
     bool interrupted;
 
     MMU* mmu;
-
     DMA* dma;
+
+    BTInterrupt* btInterrupt;
 
     unsigned short pre_interrupt_PRR;
 
@@ -133,6 +137,7 @@ public:
     void RMB3_ZP(); //37
     void SEC(); //38
     void BBR3(); //3F
+    void RTI(); //40
     void LSR_ZP(); //46
     void PHA(); //48
     void EOR_I(); //49
@@ -194,6 +199,7 @@ public:
     void DEX(); //CA
     void WAI(); //CB
     void CPY_A(); //CC
+    void CMP_A(); //CD
     void DEC_A(); //CE
     void BNE(); //D0
     void DEC_ZPX(); //D6

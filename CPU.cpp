@@ -4,6 +4,7 @@
 #include "MMU.h"
 #include "DMA.h"
 #include "Controller.h"
+#include "Interrupt.h"
 
 typedef void(CPU::*opcode_func)();
 opcode_func OPCODES[] = {
@@ -71,7 +72,7 @@ opcode_func OPCODES[] = {
         (opcode_func)nullptr, //3D
         (opcode_func)nullptr, //3E
         CPU::BBR3, //3F
-        (opcode_func)nullptr, //40
+        CPU::RTI, //40
         (opcode_func)nullptr, //41
         (opcode_func)nullptr, //42
         (opcode_func)nullptr, //43
@@ -212,7 +213,7 @@ opcode_func OPCODES[] = {
         CPU::DEX, //CA
         CPU::WAI, //CB
         CPU::CPY_A, //CC
-        (opcode_func)nullptr, //CD
+        CPU::CMP_A, //CD
         CPU::DEC_A, //CE
         (opcode_func)nullptr, //CF
         CPU::BNE, //D0
@@ -331,7 +332,7 @@ CPU::CPU(char* OTPFile, char* flashFile){
 
     this->pre_interrupt_PRR = this->GetPRR();
 
-    ////BT interrupt
+    this->btInterrupt = new BTInterrupt(this);
     ////PT interrupt
 
     this->Reset();
@@ -619,6 +620,16 @@ bool CPU::Step(){
         return true;
     }
     (this->*func)();
+
+    bool bt_interrupt_requested = this->btInterrupt->Update();
+    if (!this->i){
+        if (!this->interrupted && bt_interrupt_requested){
+            this->BeginInterrupt();
+            this->PushShort(this->PC);
+            this->Push(this->ExportFlags());
+            this->PC = this->GetBTVector();
+        }
+    }
     return false;
 }
 
@@ -756,6 +767,13 @@ void CPU::BBR3(){
     if (!(val & 0b1000)){
         this->PC = ptr;
     }
+}
+void CPU::RTI(){
+    BYTE flags = this->Pop();
+    this->ImportFlags(flags);
+    unsigned short return_addr = this->PopShort();
+    this->PC = return_addr;
+    this->EndInterrupt();
 }
 void CPU::LSR_ZP(){
     BYTE val = this->ZeroPageVal();
@@ -1149,6 +1167,13 @@ void CPU::CPY_A(){
     this->c = this->Y >= val;
     this->z = this->Y == val;
     this->n = this->Y < val;
+    this->PC += 3;
+}
+void CPU::CMP_A(){
+    BYTE val = this->AbsoluteVal();
+    this->c = this->A >= val;
+    this->z = this->A == val;
+    this->n = this->A < val;
     this->PC += 3;
 }
 void CPU::DEC_A(){
