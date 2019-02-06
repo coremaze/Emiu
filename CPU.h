@@ -116,6 +116,7 @@ public:
     bool Step();
 
     void ASL_ZP(); //06
+    void RMB0_ZP(); //07
     void PHP(); //08
     void ORA_I(); //09
     void ASL_ACC(); //0A
@@ -124,17 +125,21 @@ public:
     void ORA_A(); //0D
     void JSR(); //20
     void BIT_ZP(); //24
+    void ROL_ZP(); //26
     void PLP(); //28
     void AND_I(); //29
     void ROL_ACC(); //2A
     void AND_A(); //2D
+    void RMB3_ZP(); //37
     void SEC(); //38
+    void BBR3(); //3F
     void LSR_ZP(); //46
     void PHA(); //48
     void EOR_I(); //49
     void LSR_ACC(); //4A
     void JMP_A(); //4C
     void EOR_A(); //4D
+    void BBR4(); //4F
     void CLI(); //58
     void PHY(); //5A
     void RTS(); //60
@@ -144,15 +149,18 @@ public:
     void PLA(); //68
     void ADC_I(); //69
     void ROR_ACC(); //6A
+    void JMP_I(); //6C
     void ADC_A(); //6D
     void SEI(); //78
     void PLY(); //7A
+    void BBR7(); //7F
     void BRA(); //80
     void STA_ZP(); //85
     void SMB0_ZP(); //87
     void DEY(); //88
     void STA_A(); //8D
     void STX_A(); //8E
+    void BBS0(); //8F
     void BCC(); //90
     void STA_IZP(); //92
     void STA_ZPX(); //95

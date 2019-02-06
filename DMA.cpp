@@ -1,6 +1,7 @@
 #include "CPU.h"
 #include "DMA.h"
 #include "MMU.h"
+#include <iostream>
 
 DMA::DMA(CPU* cpu){
     this->cpu = cpu;
@@ -118,10 +119,6 @@ void DMA::Execute(){
     BYTE dest_mode = (DMOD_value & 0b001100) >> 2;
     BYTE func = (DMOD_value & 0b110000) >> 4;
 
-    //BYTE DCNTL_value = this->cpu->mmu->ReadByte(DCNT);
-    //BYTE DCNTH_value = this->cpu->mmu->ReadByte(DCNT+1);
-    //unsigned short _number = this->number;
-
     unsigned short old_sourcePtr = this->sourcePtr;
     unsigned short old_destPtr = this->destPtr;
 
@@ -159,6 +156,18 @@ void DMA::Execute(){
         else if (source_mode == 0b01) { //Reload mode
             this->sourcePtr++;
             this->sourcePtr = this->sourcePtr | 0x8000;
+        }
+        else { //Fixed mode
+
+        }
+
+        if (dest_mode == 0b00){ //Continue mode
+            this->destPtr++;
+            this->destPtr = this->destPtr | 0x8000;
+        }
+        else if (dest_mode == 0b01) { //Reload mode
+            this->destPtr++;
+            this->destPtr = this->destPtr | 0x8000;
         }
         else { //Fixed mode
 

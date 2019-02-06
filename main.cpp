@@ -21,22 +21,27 @@ int main(int argc, char *argv[])
 
     bool stepping = false;
     while (!cpu->Step() && !cpu->display->Update()){
-        cpu->mmu->StoreShort(0, 0xFFFF);
         //cpu->PrintState();
-        if (stepping){
-                cpu->PrintState();
-                std::cin.get();
+
+        if (cpu->PC == 0x70D8){
+            cpu->PC = 0x70DB;
         }
 
-
-        /*if (cpu->PC == 0x5A41){
-                stepping = true;
-                cpu->PrintState();
-                printf("%04X ", (unsigned int)cpu->mmu->ReadShort(0xAC));
-        }*/
+        //cpu->PrintState()  ;
+        //if (cpu->PC == 0x4FF9){
+        //    stepping = true;
+        //    printf("%02x\n", cpu->mmu->ReadByte(0xC75E));
+        //    //printf("%02X ", (unsigned int)cpu->mmu->ReadByte(0xC3));
+        //}
+        if (stepping){
+            cpu->PrintState();
+            std::cin.get();
+            //stepping = false;
+        }
 
     }
-    //cpu->PrintState();
 
+    //cpu->PrintState();
+    Sleep(1000);
     return 0;
 }

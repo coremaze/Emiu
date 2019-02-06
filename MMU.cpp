@@ -2,15 +2,12 @@
 #include "CPU.h"
 #include "DMA.h"
 #include <iostream>
+
 MMU::MMU(CPU* cpu){
     this->cpu = cpu;
 }
 
 void MMU::StoreByte(unsigned short address, BYTE by){
-
-    //if (address== 0x8000){
-    //    printf("0x8000 from %04X\n writing %02X\n", this->cpu->PC, (unsigned int)by);
-    //}
     if ((address >= REGISTERS_START) && (address < (REGISTERS_START + REGISTERS_LENGTH))){ //Register?
         if (address == BTREQ){
             by = ~by;
@@ -41,7 +38,7 @@ void MMU::StoreByte(unsigned short address, BYTE by){
     else if ((address >= BRR_START) && (address < (BRR_START + BRR_LENGTH))){ //BRR?
         unsigned short brr = this->cpu->GetBRR();
         unsigned char page = brr & 0x7F; //Select page for OTP or flash
-        unsigned short paged_location = (address - BRR_START) + BRR_LENGTH * page; //Calculate location for OTP or flash
+        unsigned int paged_location = (address - BRR_START) + BRR_LENGTH * page; //Calculate location for OTP or flash
         if ( ((brr & 0b1001111000000000) == 0b1111000000000) || (brr == 0) ){ //OTP?
             this->cpu->OTP[paged_location % OTP_SIZE] = by;
         }
@@ -49,7 +46,8 @@ void MMU::StoreByte(unsigned short address, BYTE by){
             this->cpu->WriteVideoRegister(address, by);
         }
         else if ( (brr & 0b1001110000000000) == 0b10000000000 ){ //Flash?
-            this->cpu->Flash[paged_location % FLASH_SIZE] = by;
+            printf("BRR Warning: PRR: %04X PC: %04X tried to write %02X to Flash.\n", this->cpu->GetPRR(), (unsigned int)this->cpu->PC, (unsigned int)by);
+            //this->cpu->Flash[paged_location % FLASH_SIZE] = by;
         }
         else if ( (brr & 0x8000) == 0x8000 ){ //Internal RAM 0x2000 ~ 0x3FFF
             this->cpu->RAM[address] = by; //Fall through
@@ -61,7 +59,7 @@ void MMU::StoreByte(unsigned short address, BYTE by){
     else if ((address >= PRR_START) && (address < (PRR_START + PRR_LENGTH))){ //PRR?
         unsigned short prr = this->cpu->GetPRR();
         unsigned char page = prr & 0x7F; //Select page for OTP or flash
-        unsigned short paged_location = (address - PRR_START) + PRR_LENGTH * page; //Calculate location for OTP or flash
+        unsigned int paged_location = (address - PRR_START) + PRR_LENGTH * page; //Calculate location for OTP or flash
         if ( ((prr & 0b1000111100000000) == 0b111100000000) || (prr == 0) ){ //OTP?
             this->cpu->OTP[paged_location % OTP_SIZE] = by;
         }
@@ -69,7 +67,8 @@ void MMU::StoreByte(unsigned short address, BYTE by){
             this->cpu->WriteVideoRegister(address, by);
         }
         else if ( (prr & 0b1000111000000000) == 0b1000000000 ){ //Flash?
-            this->cpu->Flash[paged_location % FLASH_SIZE] = by;
+            //printf("PRR Warning: PRR: %04X PC: %04X tried to write %02X to Flash.\n", this->cpu->GetPRR(), (unsigned int)this->cpu->PC, (unsigned int)by);
+            //this->cpu->Flash[paged_location % FLASH_SIZE] = by;
         }
         else if ( (prr & 0x8000) == 0x8000 ){ //Internal RAM 0x2000 ~ 0x3FFF
             this->cpu->RAM[address] = by; //Fall through
@@ -81,7 +80,7 @@ void MMU::StoreByte(unsigned short address, BYTE by){
     else if ((address >= DRR_START) && (address < (DRR_START + DRR_LENGTH))){ //PRR?
         unsigned short drr = this->cpu->GetDRR();
         unsigned char page = drr & 0x7F; //Select page for OTP or flash
-        unsigned short paged_location = (address - DRR_START) + DRR_LENGTH * page; //Calculate location for OTP or flash
+        unsigned int paged_location = (address - DRR_START) + DRR_LENGTH * page; //Calculate location for OTP or flash
         if ( ((drr & 0b1000111100000000) == 0b111100000000) || (drr == 0) ){ //OTP?
             this->cpu->OTP[paged_location % OTP_SIZE] = by;
         }
@@ -89,7 +88,8 @@ void MMU::StoreByte(unsigned short address, BYTE by){
             this->cpu->WriteVideoRegister(address, by);
         }
         else if ( (drr & 0b1000011100000000) == 0b100000000 ){ //Flash?
-            this->cpu->Flash[paged_location % FLASH_SIZE] = by;
+            printf("DRR Warning: PRR: %04X PC: %04X tried to write %02X to Flash.\n", this->cpu->GetPRR(), (unsigned int)this->cpu->PC, (unsigned int)by);
+            //this->cpu->Flash[paged_location % FLASH_SIZE] = by;
         }
         else if ( (drr & 0x8000) == 0x8000 ){ //Internal RAM 0x2000 ~ 0x3FFF
             this->cpu->RAM[address] = by; //Fall through
@@ -104,6 +104,7 @@ void MMU::StoreByte(unsigned short address, BYTE by){
 }
 
 BYTE MMU::ReadByte(unsigned short address){
+
     if ((address >= REGISTERS_START) && (address < (REGISTERS_START + REGISTERS_LENGTH))){ //Register?
         if (address == DPTR){
             return this->cpu->dma->GetDPTRL();
@@ -130,7 +131,7 @@ BYTE MMU::ReadByte(unsigned short address){
     else if ((address >= BRR_START) && (address < (BRR_START + BRR_LENGTH))){ //BRR?
         unsigned short brr = this->cpu->GetBRR();
         unsigned char page = brr & 0x7F; //Select page for OTP or flash
-        unsigned short paged_location = (address - BRR_START) + BRR_LENGTH * page; //Calculate location for OTP or flash
+        unsigned int paged_location = (address - BRR_START) + BRR_LENGTH * page; //Calculate location for OTP or flash
         if ( ((brr & 0b1001111000000000) == 0b1111000000000) || (brr == 0) ){ //OTP?
             return this->cpu->OTP[paged_location % OTP_SIZE];
         }
@@ -150,7 +151,7 @@ BYTE MMU::ReadByte(unsigned short address){
     else if ((address >= PRR_START) && (address < (PRR_START + PRR_LENGTH))){ //PRR?
         unsigned short prr = this->cpu->GetPRR();
         unsigned char page = prr & 0x7F; //Select page for OTP or flash
-        unsigned short paged_location = (address - PRR_START) + PRR_LENGTH * page; //Calculate location for OTP or flash
+        unsigned int paged_location = (address - PRR_START) + PRR_LENGTH * page; //Calculate location for OTP or flash
         if ( ((prr & 0b1000111100000000) == 0b111100000000) || (prr == 0) ){ //OTP?
             return this->cpu->OTP[paged_location % OTP_SIZE];
         }
@@ -167,10 +168,10 @@ BYTE MMU::ReadByte(unsigned short address){
             printf("Invalid PRR mask: %04X", this->cpu->GetPRR());
         }
     }
-    else if ((address >= DRR_START) && (address < (DRR_START + DRR_LENGTH))){ //PRR?
+    else if ((address >= DRR_START) && (address < (DRR_START + DRR_LENGTH))){ //DRR?
         unsigned short drr = this->cpu->GetDRR();
         unsigned char page = drr & 0x7F; //Select page for OTP or flash
-        unsigned short paged_location = (address - DRR_START) + DRR_LENGTH * page; //Calculate location for OTP or flash
+        unsigned int paged_location = (address - DRR_START) + DRR_LENGTH * page; //Calculate location for OTP or flash
         if ( ((drr & 0b1000111100000000) == 0b111100000000) || (drr == 0) ){ //OTP?
             return this->cpu->OTP[paged_location % OTP_SIZE];
         }
