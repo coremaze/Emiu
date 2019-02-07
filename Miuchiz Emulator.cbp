@@ -31,6 +31,8 @@
 		<Unit filename="DMA.h" />
 		<Unit filename="Display.cpp" />
 		<Unit filename="Display.h" />
+		<Unit filename="Interrupt.cpp" />
+		<Unit filename="Interrupt.h" />
 		<Unit filename="MMU.cpp" />
 		<Unit filename="MMU.h" />
 		<Unit filename="main.cpp" />

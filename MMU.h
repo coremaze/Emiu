@@ -2,6 +2,7 @@
 #define MMU_H
 class CPU;
 class DMA;
+class Flash;
 
 #define BRR_START 0x2000
 #define BRR_LENGTH 0x2000

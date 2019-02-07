@@ -2,6 +2,7 @@
 #include "CPU.h"
 #include "DMA.h"
 #include <iostream>
+#include "Flash.h"
 
 MMU::MMU(CPU* cpu){
     this->cpu = cpu;
@@ -46,14 +47,15 @@ void MMU::StoreByte(unsigned short address, BYTE by){
             this->cpu->WriteVideoRegister(address, by);
         }
         else if ( (brr & 0b1001110000000000) == 0b10000000000 ){ //Flash?
-            printf("BRR Warning: PRR: %04X PC: %04X tried to write %02X to Flash.\n", this->cpu->GetPRR(), (unsigned int)this->cpu->PC, (unsigned int)by);
+            printf("BRR Warning: PRR: %04X PC: %04X tried to write %02X to Flash:%04X\n", this->cpu->GetPRR(), (unsigned int)this->cpu->PC, (unsigned int)by, (unsigned int)paged_location);
             //this->cpu->Flash[paged_location % FLASH_SIZE] = by;
+            this->cpu->flash->Write(paged_location % FLASH_SIZE, by);
         }
         else if ( (brr & 0x8000) == 0x8000 ){ //Internal RAM 0x2000 ~ 0x3FFF
             this->cpu->RAM[address] = by; //Fall through
         }
         else {
-            printf("Invalid BRR mask: %04X", this->cpu->GetBRR());
+            printf("Invalid BRR mask: %04X\n", this->cpu->GetBRR());
         }
     }
     else if ((address >= PRR_START) && (address < (PRR_START + PRR_LENGTH))){ //PRR?
@@ -69,12 +71,13 @@ void MMU::StoreByte(unsigned short address, BYTE by){
         else if ( (prr & 0b1000111000000000) == 0b1000000000 ){ //Flash?
             //printf("PRR Warning: PRR: %04X PC: %04X tried to write %02X to Flash.\n", this->cpu->GetPRR(), (unsigned int)this->cpu->PC, (unsigned int)by);
             //this->cpu->Flash[paged_location % FLASH_SIZE] = by;
+            this->cpu->flash->Write(paged_location % FLASH_SIZE, by);
         }
         else if ( (prr & 0x8000) == 0x8000 ){ //Internal RAM 0x2000 ~ 0x3FFF
             this->cpu->RAM[address] = by; //Fall through
         }
         else {
-            printf("Invalid PRR mask: %04X", this->cpu->GetPRR());
+            printf("Invalid PRR mask: %04X\n", this->cpu->GetPRR());
         }
     }
     else if ((address >= DRR_START) && (address < (DRR_START + DRR_LENGTH))){ //PRR?
@@ -88,14 +91,15 @@ void MMU::StoreByte(unsigned short address, BYTE by){
             this->cpu->WriteVideoRegister(address, by);
         }
         else if ( (drr & 0b1000011100000000) == 0b100000000 ){ //Flash?
-            printf("DRR Warning: PRR: %04X PC: %04X tried to write %02X to Flash.\n", this->cpu->GetPRR(), (unsigned int)this->cpu->PC, (unsigned int)by);
+            //printf("DRR Warning: PRR: %04X PC: %04X tried to write %02X to Flash:%04X\n", this->cpu->GetPRR(), (unsigned int)this->cpu->PC, (unsigned int)by, (unsigned int)paged_location);
             //this->cpu->Flash[paged_location % FLASH_SIZE] = by;
+            this->cpu->flash->Write(paged_location % FLASH_SIZE, by);
         }
         else if ( (drr & 0x8000) == 0x8000 ){ //Internal RAM 0x2000 ~ 0x3FFF
             this->cpu->RAM[address] = by; //Fall through
         }
         else {
-            printf("Invalid DRR mask: %04X", this->cpu->GetDRR());
+            printf("(Write) Invalid DRR mask: %04X PC:%04X\n", this->cpu->GetDRR(), this->cpu->PC);
         }
     }
     else {
@@ -139,13 +143,14 @@ BYTE MMU::ReadByte(unsigned short address){
             return this->cpu->videoRegisters[address % 2];
         }
         else if ( (brr & 0b1001110000000000) == 0b10000000000 ){ //Flash?
-            return this->cpu->Flash[paged_location % FLASH_SIZE];
+            //return this->cpu->Flash[paged_location % FLASH_SIZE];
+            return this->cpu->flash->Read(paged_location % FLASH_SIZE);
         }
         else if ( (brr & 0x8000) == 0x8000 ){ //Internal RAM 0x2000 ~ 0x3FFF
             return this->cpu->RAM[address];
         }
         else {
-            printf("Invalid BRR mask: %04X", this->cpu->GetBRR());
+            printf("Invalid BRR mask: %04X\n", this->cpu->GetBRR());
         }
     }
     else if ((address >= PRR_START) && (address < (PRR_START + PRR_LENGTH))){ //PRR?
@@ -159,13 +164,14 @@ BYTE MMU::ReadByte(unsigned short address){
             return this->cpu->videoRegisters[address % 2];
         }
         else if ( (prr & 0b1000111000000000) == 0b1000000000 ){ //Flash?
-            return this->cpu->Flash[paged_location % FLASH_SIZE];
+            //return this->cpu->Flash[paged_location % FLASH_SIZE];
+            return this->cpu->flash->Read(paged_location % FLASH_SIZE);
         }
         else if ( (prr & 0x8000) == 0x8000 ){ //Internal RAM 0x2000 ~ 0x3FFF
             return this->cpu->RAM[address]; //Fall through
         }
         else {
-            printf("Invalid PRR mask: %04X", this->cpu->GetPRR());
+            printf("Invalid PRR mask: %04X\n", this->cpu->GetPRR());
         }
     }
     else if ((address >= DRR_START) && (address < (DRR_START + DRR_LENGTH))){ //DRR?
@@ -179,13 +185,14 @@ BYTE MMU::ReadByte(unsigned short address){
             return this->cpu->videoRegisters[address % 2];
         }
         else if ( (drr & 0b1000011100000000) == 0b100000000 ){ //Flash?
-            return this->cpu->Flash[paged_location % FLASH_SIZE];
+            //return this->cpu->Flash[paged_location % FLASH_SIZE];
+            return this->cpu->flash->Read(paged_location % FLASH_SIZE);
         }
         else if ( (drr & 0x8000) == 0x8000 ){ //Internal RAM 0x2000 ~ 0x3FFF
             return this->cpu->RAM[address]; //Fall through
         }
         else {
-            printf("Invalid DRR mask: %04X", this->cpu->GetDRR());
+            printf("(Read) Invalid DRR mask: %04X PC:%04X\n", this->cpu->GetDRR(), this->cpu->PC);
         }
     }
     else {

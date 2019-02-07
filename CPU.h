@@ -7,6 +7,9 @@ class Controller;
 
 class BTInterrupt;
 
+class Flash;
+
+
 
 #define STACK_START 0x100
 #define IRR 0x30
@@ -43,7 +46,8 @@ public:
     BYTE RAM[0x10000];
     BYTE videoRegisters[0x2];
     BYTE OTP[OTP_SIZE];
-    BYTE Flash[FLASH_SIZE];
+    //BYTE Flash[FLASH_SIZE];
+    Flash* flash;
 
     Controller* controller;
 
@@ -119,32 +123,45 @@ public:
 
     bool Step();
 
+    void ORA_ZP(); //05
     void ASL_ZP(); //06
     void RMB0_ZP(); //07
     void PHP(); //08
     void ORA_I(); //09
     void ASL_ACC(); //0A
+    void ORA_A(); //0D
+    void ASL_A(); //0E
+    void BBR0(); //0F
     void BPL(); //10
     void CLC(); //18
-    void ORA_A(); //0D
+    void ORA_AX(); //1D
+    void BBR1(); //1F
     void JSR(); //20
     void BIT_ZP(); //24
     void ROL_ZP(); //26
+    void RMB2_ZP(); //27
     void PLP(); //28
     void AND_I(); //29
     void ROL_ACC(); //2A
     void AND_A(); //2D
+    void ROL_A(); //2E
+    void BBR2(); //2F
+    void BMI(); //30
     void RMB3_ZP(); //37
     void SEC(); //38
+    void AND_AY(); //39
     void BBR3(); //3F
     void RTI(); //40
+    void EOR_ZP(); //45
     void LSR_ZP(); //46
+    void RMB4_ZP(); //47
     void PHA(); //48
     void EOR_I(); //49
     void LSR_ACC(); //4A
     void JMP_A(); //4C
     void EOR_A(); //4D
     void BBR4(); //4F
+    void RMB5_ZP(); //57
     void CLI(); //58
     void PHY(); //5A
     void RTS(); //60
@@ -156,19 +173,26 @@ public:
     void ROR_ACC(); //6A
     void JMP_I(); //6C
     void ADC_A(); //6D
+    void BBR6(); //6F
+    void ADC_IZP(); //72
+    void RMB7_ZP(); //77
     void SEI(); //78
     void PLY(); //7A
     void BBR7(); //7F
     void BRA(); //80
+    void STY_ZP(); //84
     void STA_ZP(); //85
     void SMB0_ZP(); //87
     void DEY(); //88
+    void TXA(); //8A
     void STA_A(); //8D
     void STX_A(); //8E
     void BBS0(); //8F
     void BCC(); //90
+    void STA_INDIRECT_INDEXED(); //91
     void STA_IZP(); //92
     void STA_ZPX(); //95
+    void SMB1_ZP(); //97
     void TYA(); //98
     void STA_AY(); //99
     void TXS(); //9A
@@ -177,6 +201,7 @@ public:
     void LDY_I(); //A0
     void LDA_INDEXED_INDIRECT(); //A1
     void LDX_I(); //A2
+    void LDY_ZP(); //A4
     void LDA_ZP(); //A5
     void LDX_ZP(); //A6
     void SMB2_ZP(); //A7
@@ -184,16 +209,21 @@ public:
     void LDA_I(); //A9
     void TAX(); //AA
     void LDA_A(); //AD
+    void BBS2(); //AF
     void BCS(); //B0
     void LDA_INDIRECT_INDEXED(); //B1
     void LDA_IZP(); //B2
     void LDA_ZPX(); //B5
+    void SMB3_ZP(); //B7
     void LDA_AY(); //B9
     void LDY_AX(); //BC
     void LDA_AX(); //BD
+    void BBS3(); //BF
     void CPY_I(); //C0
     void CPY_ZP(); //C4
+    void CMP_ZP(); //C5
     void DEC_ZP(); //C6
+    void SMB4_ZP(); //C7
     void INY(); //C8
     void CMP_I(); //C9
     void DEX(); //CA
@@ -201,11 +231,14 @@ public:
     void CPY_A(); //CC
     void CMP_A(); //CD
     void DEC_A(); //CE
+    void BBS4(); //CF
     void BNE(); //D0
     void DEC_ZPX(); //D6
     void PHX(); //DA
+    void BBS5(); //DF
     void CPX_I(); //E0
     void CPX_ZP(); //E4
+    void SBC_ZP(); //E5
     void INC_ZP(); //E6
     void SMB6_ZP(); //E7
     void INX(); //E8
@@ -214,10 +247,13 @@ public:
     void CPX_A(); //0xEC
     void SBC_A(); //ED
     void INC_A(); //EE
+    void BBS6(); //EF
     void BEQ(); //F0
     void INC_ZPX(); //F6
     void SMB7_ZP(); //F7
     void PLX(); //FA
+    void INC_AX(); //FE
+    void BBS7(); //FF
 
 };
 #endif // CPU_H

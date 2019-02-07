@@ -23,9 +23,17 @@ int main(int argc, char *argv[])
     while (!cpu->Step() && !cpu->display->Update()){
         //cpu->PrintState();
 
-        if (cpu->PC == 0x70D8){
-            cpu->PC = 0x70DB;
-        }
+        //if (cpu->PC == 0x70D8){
+        //    cpu->PC = 0x70DB;
+        //}
+
+        //if (cpu->PC == 0x436D ){
+        //    cpu->PC = 0x440E;
+        //}
+
+        //if (cpu->PC == 0x436D ){
+        //    cpu->PC = 0x4668;
+        //}
 
         //cpu->PrintState()  ;
         //if (cpu->PC == 0x4FF9){

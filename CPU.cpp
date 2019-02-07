@@ -5,6 +5,7 @@
 #include "DMA.h"
 #include "Controller.h"
 #include "Interrupt.h"
+#include "Flash.h"
 
 typedef void(CPU::*opcode_func)();
 opcode_func OPCODES[] = {
@@ -13,7 +14,7 @@ opcode_func OPCODES[] = {
         (opcode_func)nullptr, //02
         (opcode_func)nullptr, //03
         (opcode_func)nullptr, //04
-        (opcode_func)nullptr, //05
+        CPU::ORA_ZP, //05
         CPU::ASL_ZP, //06
         CPU::RMB0_ZP, //07
         CPU::PHP, //08
@@ -22,8 +23,8 @@ opcode_func OPCODES[] = {
         (opcode_func)nullptr, //0B
         (opcode_func)nullptr, //0C
         CPU::ORA_A, //0D
-        (opcode_func)nullptr, //0E
-        (opcode_func)nullptr, //0F
+        CPU::ASL_A, //0E
+        CPU::BBR0, //0F
         CPU::BPL, //10
         (opcode_func)nullptr, //11
         (opcode_func)nullptr, //12
@@ -37,9 +38,9 @@ opcode_func OPCODES[] = {
         (opcode_func)nullptr, //1A
         (opcode_func)nullptr, //1B
         (opcode_func)nullptr, //1C
-        (opcode_func)nullptr, //1D
+        CPU::ORA_AX, //1D
         (opcode_func)nullptr, //1E
-        (opcode_func)nullptr, //1F
+        CPU::BBR1, //1F
         CPU::JSR, //20
         (opcode_func)nullptr, //21
         (opcode_func)nullptr, //22
@@ -47,16 +48,16 @@ opcode_func OPCODES[] = {
         CPU::BIT_ZP, //24
         (opcode_func)nullptr, //25
         CPU::ROL_ZP, //26
-        (opcode_func)nullptr, //27
+        CPU::RMB2_ZP, //27
         CPU::PLP, //28
         CPU::AND_I, //29
         CPU::ROL_ACC, //2A
         (opcode_func)nullptr, //2B
         (opcode_func)nullptr, //2C
         CPU::AND_A, //2D
-        (opcode_func)nullptr, //2E
-        (opcode_func)nullptr, //2F
-        (opcode_func)nullptr, //30
+        CPU::ROL_A, //2E
+        CPU::BBR2, //2F
+        CPU::BMI, //30
         (opcode_func)nullptr, //31
         (opcode_func)nullptr, //32
         (opcode_func)nullptr, //33
@@ -65,7 +66,7 @@ opcode_func OPCODES[] = {
         (opcode_func)nullptr, //36
         CPU::RMB3_ZP, //37
         CPU::SEC, //38
-        (opcode_func)nullptr, //39
+        CPU::AND_AY, //39
         (opcode_func)nullptr, //3A
         (opcode_func)nullptr, //3B
         (opcode_func)nullptr, //3C
@@ -77,9 +78,9 @@ opcode_func OPCODES[] = {
         (opcode_func)nullptr, //42
         (opcode_func)nullptr, //43
         (opcode_func)nullptr, //44
-        (opcode_func)nullptr, //45
+        CPU::EOR_ZP, //45
         CPU::LSR_ZP, //46
-        (opcode_func)nullptr, //47
+        CPU::RMB4_ZP, //47
         CPU::PHA, //48
         CPU::EOR_I, //49
         CPU::LSR_ACC, //4A
@@ -95,7 +96,7 @@ opcode_func OPCODES[] = {
         (opcode_func)nullptr, //54
         (opcode_func)nullptr, //55
         (opcode_func)nullptr, //56
-        (opcode_func)nullptr, //57
+        CPU::RMB5_ZP, //57
         CPU::CLI, //58
         (opcode_func)nullptr, //59
         CPU::PHY, //5A
@@ -119,15 +120,15 @@ opcode_func OPCODES[] = {
         CPU::JMP_I, //6C
         CPU::ADC_A, //6D
         (opcode_func)nullptr, //6E
-        (opcode_func)nullptr, //6F
+        CPU::BBR6, //6F
         (opcode_func)nullptr, //70
         (opcode_func)nullptr, //71
-        (opcode_func)nullptr, //72
+        CPU::ADC_IZP, //72
         (opcode_func)nullptr, //73
         (opcode_func)nullptr, //74
         (opcode_func)nullptr, //75
         (opcode_func)nullptr, //76
-        (opcode_func)nullptr, //77
+        CPU::RMB7_ZP, //77
         CPU::SEI, //78
         (opcode_func)nullptr, //79
         CPU::PLY, //7A
@@ -140,26 +141,26 @@ opcode_func OPCODES[] = {
         (opcode_func)nullptr, //81
         (opcode_func)nullptr, //82
         (opcode_func)nullptr, //83
-        (opcode_func)nullptr, //84
+        CPU::STY_ZP, //84
         CPU::STA_ZP, //85
         (opcode_func)nullptr, //86
         CPU::SMB0_ZP, //87
         CPU::DEY, //88
         (opcode_func)nullptr, //89
-        (opcode_func)nullptr, //8A
+        CPU::TXA, //8A
         (opcode_func)nullptr, //8B
         (opcode_func)nullptr, //8C
         CPU::STA_A, //8D
         CPU::STX_A, //8E
         CPU::BBS0, //8F
         CPU::BCC, //90
-        (opcode_func)nullptr, //91
+        CPU::STA_INDIRECT_INDEXED, //91
         CPU::STA_IZP, //92
         (opcode_func)nullptr, //93
         (opcode_func)nullptr, //94
         CPU::STA_ZPX, //95
         (opcode_func)nullptr, //96
-        (opcode_func)nullptr, //97
+        CPU::SMB1_ZP, //97
         CPU::TYA, //98
         CPU::STA_AY, //99
         CPU::TXS, //9A
@@ -172,7 +173,7 @@ opcode_func OPCODES[] = {
         CPU::LDA_INDEXED_INDIRECT, //A1
         CPU::LDX_I, //A2
         (opcode_func)nullptr, //A3
-        (opcode_func)nullptr, //A4
+        CPU::LDY_ZP, //A4
         CPU::LDA_ZP, //A5
         CPU::LDX_ZP, //A6
         CPU::SMB2_ZP, //A7
@@ -183,7 +184,7 @@ opcode_func OPCODES[] = {
         (opcode_func)nullptr, //AC
         CPU::LDA_A, //AD
         (opcode_func)nullptr, //AE
-        (opcode_func)nullptr, //AF
+        CPU::BBS2, //AF
         CPU::BCS, //B0
         CPU::LDA_INDIRECT_INDEXED, //B1
         CPU::LDA_IZP, //B2
@@ -191,7 +192,7 @@ opcode_func OPCODES[] = {
         (opcode_func)nullptr, //B4
         CPU::LDA_ZPX, //B5
         (opcode_func)nullptr, //B6
-        (opcode_func)nullptr, //B7
+        CPU::SMB3_ZP, //B7
         (opcode_func)nullptr, //B8
         CPU::LDA_AY, //B9
         (opcode_func)nullptr, //BA
@@ -199,15 +200,15 @@ opcode_func OPCODES[] = {
         CPU::LDY_AX, //BC
         CPU::LDA_AX, //BD
         (opcode_func)nullptr, //BE
-        (opcode_func)nullptr, //BF
+        CPU::BBS3, //BF
         CPU::CPY_I, //C0
         (opcode_func)nullptr, //C1
         (opcode_func)nullptr, //C2
         (opcode_func)nullptr, //C3
         CPU::CPY_ZP, //C4
-        (opcode_func)nullptr, //C5
+        CPU::CMP_ZP, //C5
         CPU::DEC_ZP, //C6
-        (opcode_func)nullptr, //C7
+        CPU::SMB4_ZP, //C7
         CPU::INY, //C8
         CPU::CMP_I, //C9
         CPU::DEX, //CA
@@ -215,7 +216,7 @@ opcode_func OPCODES[] = {
         CPU::CPY_A, //CC
         CPU::CMP_A, //CD
         CPU::DEC_A, //CE
-        (opcode_func)nullptr, //CF
+        CPU::BBS4, //CF
         CPU::BNE, //D0
         (opcode_func)nullptr, //D1
         (opcode_func)nullptr, //D2
@@ -231,13 +232,13 @@ opcode_func OPCODES[] = {
         (opcode_func)nullptr, //DC
         (opcode_func)nullptr, //DD
         (opcode_func)nullptr, //DE
-        (opcode_func)nullptr, //DF
+        CPU::BBS5, //DF
         CPU::CPX_I, //E0
         (opcode_func)nullptr, //E1
         (opcode_func)nullptr, //E2
         (opcode_func)nullptr, //E3
         CPU::CPX_ZP, //E4
-        (opcode_func)nullptr, //E5
+        CPU::SBC_ZP, //E5
         CPU::INC_ZP, //E6
         CPU::SMB6_ZP, //E7
         CPU::INX, //E8
@@ -247,7 +248,7 @@ opcode_func OPCODES[] = {
         CPU::CPX_A, //EC
         CPU::SBC_A, //ED
         CPU::INC_A, //EE
-        (opcode_func)nullptr, //EF
+        CPU::BBS6, //EF
         CPU::BEQ, //F0
         (opcode_func)nullptr, //F1
         (opcode_func)nullptr, //F2
@@ -262,8 +263,8 @@ opcode_func OPCODES[] = {
         (opcode_func)nullptr, //FB
         (opcode_func)nullptr, //FC
         (opcode_func)nullptr, //FD
-        (opcode_func)nullptr, //FE
-        (opcode_func)nullptr, //FF
+        CPU::INC_AX, //FE
+        CPU::BBS7, //FF
 };
 
 
@@ -288,6 +289,8 @@ CPU::CPU(char* OTPFile, char* flashFile){
         return;
     }
 
+    this->flash = new Flash();
+
     //Load Flash
     file = fopen(flashFile, "rb");
     if (file) {
@@ -298,7 +301,7 @@ CPU::CPU(char* OTPFile, char* flashFile){
             printf("Error: Flash file is incorrect size.\n");
             return;
         }
-        fread(this->Flash, fsize, 1, file);
+        fread(this->flash->memory, fsize, 1, file);
         fclose(file);
     }
     else {
@@ -637,7 +640,13 @@ bool CPU::Step(){
 
 
 
-
+void CPU::ORA_ZP(){
+    BYTE val = this->ZeroPageVal();
+    this->A |= val;
+    this->z = this->A == 0;
+    this->n = (this->A & 0b10000000) ? true : false;
+    this->PC += 2;
+}
 void CPU::ASL_ZP(){
     BYTE val = this->ZeroPageVal();
     this->c = (0b10000000 & val) ? true : false;
@@ -674,6 +683,25 @@ void CPU::ASL_ACC(){
     this->n = (this->A & 0b10000000) ? true : false;
     this->PC += 1;
 }
+void CPU::ASL_A(){
+    BYTE val = this->AbsoluteVal();
+    this->c = (0b10000000 & this->A) ? true : false;
+    val <<= 1;
+    this->z = val == 0;
+    this->n = (val & 0b10000000) ? true : false;
+    unsigned short ptr = this->AbsolutePtr();
+    this->mmu->StoreByte(ptr, val);
+    this->PC += 3;
+}
+void CPU::BBR0(){
+    BYTE val = this->ZeroPageVal();
+    this->PC += 1;
+    unsigned short ptr = this->RelativePtr();
+    this->PC += 2;
+    if (!(val & 0b1)){
+        this->PC = ptr;
+    }
+}
 void CPU::BPL(){
     unsigned short ptr = this->RelativePtr();
     if (!this->n){
@@ -693,6 +721,22 @@ void CPU::ORA_A(){
     this->z = this->A == 0;
     this->n = (this->A & 0b10000000) ? true : false;
     this->PC += 3;
+}
+void CPU::ORA_AX(){
+    BYTE val = this->AbsoluteXVal();
+    this->A |= val;
+    this->z = this->A == 0;
+    this->n = (this->A & 0b10000000) ? true : false;
+    this->PC += 3;
+}
+void CPU::BBR1(){
+    BYTE val = this->ZeroPageVal();
+    this->PC += 1;
+    unsigned short ptr = this->RelativePtr();
+    this->PC += 2;
+    if (!(val & 0b10)){
+        this->PC = ptr;
+    }
 }
 void CPU::JSR(){
     unsigned short arg = this->AbsolutePtr();
@@ -716,6 +760,13 @@ void CPU::ROL_ZP(){
     val += (old_carry) ? 1 : 0;
     this->z = val == 0;
     this->n = (val & 0b10000000) ? true : false;
+    unsigned short ptr = this->ZeroPagePtr();
+    this->mmu->StoreByte(ptr, val);
+    this->PC += 2;
+}
+void CPU::RMB2_ZP(){
+    BYTE val = this->ZeroPageVal();
+    val &= 0b11111011;
     unsigned short ptr = this->ZeroPagePtr();
     this->mmu->StoreByte(ptr, val);
     this->PC += 2;
@@ -748,6 +799,36 @@ void CPU::AND_A(){
     this->n = (this->A & 0b10000000) ? true : false;
     this->PC += 3;
 }
+void CPU::ROL_A(){
+    BYTE val = this->AbsoluteVal();
+    bool old_carry = this->c;
+    this->c = (this->A & 0b10000000) ? true : false;
+    val <<= 1;
+    val += (old_carry) ? 1 : 0;
+    this->z = val== 0;
+    this->n = (val & 0b10000000) ? true : false;
+    unsigned short ptr = this->AbsolutePtr();
+    this->mmu->StoreByte(ptr, val);
+    this->PC += 3;
+}
+void CPU::BBR2(){
+    BYTE val = this->ZeroPageVal();
+    this->PC += 1;
+    unsigned short ptr = this->RelativePtr();
+    this->PC += 2;
+    if (!(val & 0b100)){
+        this->PC = ptr;
+    }
+}
+void CPU::BMI(){
+    if (this->n){
+        unsigned short ptr = this->RelativePtr();
+        this->PC = ptr;
+    }
+    else {
+        this->PC += 2;
+    }
+}
 void CPU::RMB3_ZP(){
     BYTE val = this->ZeroPageVal();
     val &= 0b11110111;
@@ -758,6 +839,13 @@ void CPU::RMB3_ZP(){
 void CPU::SEC(){
     this->c = true;
     this->PC += 1;
+}
+void CPU::AND_AY(){
+    BYTE val = this->AbsoluteYVal();
+    this->A &= val;
+    this->z = this->A == 0;
+    this->n = (this->A & 0b10000000) ? true : false;
+    this->PC += 3;
 }
 void CPU::BBR3(){
     BYTE val = this->ZeroPageVal();
@@ -775,12 +863,26 @@ void CPU::RTI(){
     this->PC = return_addr;
     this->EndInterrupt();
 }
+void CPU::EOR_ZP(){
+    BYTE val = this->ZeroPageVal();
+    this->A ^= val;
+    this->z = this->A == 0;
+    this->n = (this->A & 0b10000000) ? true : false;
+    this->PC += 2;
+}
 void CPU::LSR_ZP(){
     BYTE val = this->ZeroPageVal();
     this->c = (val & 0b00000001) ? true : false;
     val >>= 1;
     this->z = val == 0;
     this->n = (val & 0b10000000) ? true : false;
+    unsigned short ptr = this->ZeroPagePtr();
+    this->mmu->StoreByte(ptr, val);
+    this->PC += 2;
+}
+void CPU::RMB4_ZP(){
+    BYTE val = this->ZeroPageVal();
+    val &= 0b11101111;
     unsigned short ptr = this->ZeroPagePtr();
     this->mmu->StoreByte(ptr, val);
     this->PC += 2;
@@ -822,6 +924,13 @@ void CPU::BBR4(){
     if (!(val & 0b10000)){
         this->PC = ptr;
     }
+}
+void CPU::RMB5_ZP(){
+    BYTE val = this->ZeroPageVal();
+    val &= 0b11011111;
+    unsigned short ptr = this->ZeroPagePtr();
+    this->mmu->StoreByte(ptr, val);
+    this->PC += 2;
 }
 void CPU::CLI(){
     this->i = false;
@@ -895,6 +1004,31 @@ void CPU::ADC_A(){
     this->n = (this->A & 0b10000000) ? true : false;
     this->PC += 3;
 }
+void CPU::BBR6(){
+    BYTE val = this->ZeroPageVal();
+    this->PC += 1;
+    unsigned short ptr = this->RelativePtr();
+    this->PC += 2;
+    if (!(val & 0b1000000)){
+        this->PC = ptr;
+    }
+}
+void CPU::ADC_IZP(){
+    BYTE add = this->IndirectZeroPageVal();
+    unsigned short total = (unsigned short)this->A + (unsigned short)add + (this->c ? 1 : 0);
+    this->A += add + (this->c ? 1 : 0);
+    this->c = total > 0xFF;
+    this->z = this->A == 0;
+    this->n = (this->A & 0b10000000) ? true : false;
+    this->PC += 2;
+}
+void CPU::RMB7_ZP(){
+    BYTE val = this->ZeroPageVal();
+    val &= 0b01111111;
+    unsigned short ptr = this->ZeroPagePtr();
+    this->mmu->StoreByte(ptr, val);
+    this->PC += 2;
+}
 void CPU::SEI(){
     this->i = true;
     this->PC++;
@@ -918,6 +1052,11 @@ void CPU::BRA(){
     unsigned short ptr = this->RelativePtr();
     this->PC = ptr;
 }
+void CPU::STY_ZP(){
+    unsigned short ptr = this->ZeroPagePtr();
+    this->mmu->StoreByte(ptr, this->Y);
+    this->PC += 2;
+}
 void CPU::STA_ZP(){
     unsigned short ptr = this->ZeroPagePtr();
     this->mmu->StoreByte(ptr, this->A);
@@ -934,6 +1073,12 @@ void CPU::DEY(){
     this->Y -= 1;
     this->z = this->Y == 0;
     this->n = (this->Y & 0b10000000) ? true : false;
+    this->PC += 1;
+}
+void CPU::TXA(){
+    this->A = this->X;
+    this->z = this->A == 0;
+    this->n = (this->A & 0b10000000) ? true : false;
     this->PC += 1;
 }
 void CPU::STA_A(){
@@ -964,6 +1109,11 @@ void CPU::BCC(){
         this->PC += 2;
     }
 }
+void CPU::STA_INDIRECT_INDEXED(){
+    unsigned short ptr = this->IndirectIndexedPtr();
+    this->mmu->StoreByte(ptr, this->A);
+    this->PC += 2;
+}
 void CPU::STA_IZP(){
     unsigned short ptr = this->IndirectZeroPagePtr();
     this->mmu->StoreByte(ptr, this->A);
@@ -972,6 +1122,13 @@ void CPU::STA_IZP(){
 void CPU::STA_ZPX(){
     unsigned short ptr = this->ZeroPageXPtr();
     this->mmu->StoreByte(ptr, this->A);
+    this->PC += 2;
+}
+void CPU::SMB1_ZP(){
+    BYTE val = this->ZeroPageVal();
+    val |= 0b00000010;
+    unsigned short ptr = this->ZeroPagePtr();
+    this->mmu->StoreByte(ptr, val);
     this->PC += 2;
 }
 void CPU::TYA(){
@@ -1018,6 +1175,13 @@ void CPU::LDX_I(){
     this->X = val;
     this->z = this->X == 0;
     this->n = (this->X & 0b10000000) ? true : false;
+    this->PC += 2;
+}
+void CPU::LDY_ZP(){
+    BYTE val = this->ZeroPageVal();
+    this->Y = val;
+    this->z = this->Y == 0;
+    this->n = (this->Y & 0b10000000) ? true : false;
     this->PC += 2;
 }
 void CPU::LDA_ZP(){
@@ -1067,6 +1231,15 @@ void CPU::LDA_A(){
     this->n = (this->A & 0b10000000) ? true : false;
     this->PC += 3;
 }
+void CPU::BBS2(){
+    BYTE val = this->ZeroPageVal();
+    this->PC += 1;
+    unsigned short ptr = this->RelativePtr();
+    this->PC += 2;
+    if (val & 0b100){
+        this->PC = ptr;
+    }
+}
 void CPU::BCS(){
     unsigned short ptr = this->RelativePtr();
     if (this->c){
@@ -1098,6 +1271,13 @@ void CPU::LDA_ZPX(){
     this->n = (this->A & 0b10000000) ? true : false;
     this->PC += 2;
 }
+void CPU::SMB3_ZP(){
+    BYTE val = this->ZeroPageVal();
+    val |= 0b00001000;
+    unsigned short ptr = this->ZeroPagePtr();
+    this->mmu->StoreByte(ptr, val);
+    this->PC += 2;
+}
 void CPU::LDA_AY(){
     BYTE val = this->AbsoluteYVal();
     this->A = val;
@@ -1119,6 +1299,15 @@ void CPU::LDA_AX(){
     this->n = (this->A & 0b10000000) ? true : false;
     this->PC += 3;
 }
+void CPU::BBS3(){
+    BYTE val = this->ZeroPageVal();
+    this->PC += 1;
+    unsigned short ptr = this->RelativePtr();
+    this->PC += 2;
+    if (val & 0b00001000){
+        this->PC = ptr;
+    }
+}
 void CPU::CPY_I(){
     BYTE arg = this->ImmediateVal();
     this->c = this->Y >= arg;
@@ -1133,9 +1322,23 @@ void CPU::CPY_ZP(){
     this->n = this->Y < arg;
     this->PC += 2;
 }
+void CPU::CMP_ZP(){
+    BYTE arg = this->ZeroPageVal();
+    this->c = this->A >= arg;
+    this->z = this->A == arg;
+    this->n = this->A < arg;
+    this->PC += 2;
+}
 void CPU::DEC_ZP(){
     BYTE val = this->ZeroPageVal();
     val -= 1;
+    unsigned short ptr = this->ZeroPagePtr();
+    this->mmu->StoreByte(ptr, val);
+    this->PC += 2;
+}
+void CPU::SMB4_ZP(){
+    BYTE val = this->ZeroPageVal();
+    val |= 0b00010000;
     unsigned short ptr = this->ZeroPagePtr();
     this->mmu->StoreByte(ptr, val);
     this->PC += 2;
@@ -1185,6 +1388,15 @@ void CPU::DEC_A(){
     this->mmu->StoreByte(ptr, val);
     this->PC += 3;
 }
+void CPU::BBS4(){
+    BYTE val = this->ZeroPageVal();
+    this->PC += 1;
+    unsigned short ptr = this->RelativePtr();
+    this->PC += 2;
+    if (val & 0b00010000){
+        this->PC = ptr;
+    }
+}
 void CPU::BNE(){
     unsigned short arg = this->RelativePtr();
     if (!this->z){
@@ -1207,6 +1419,15 @@ void CPU::PHX(){
     this->Push(this->X);
     this->PC += 1;
 }
+void CPU::BBS5(){
+    BYTE val = this->ZeroPageVal();
+    this->PC += 1;
+    unsigned short ptr = this->RelativePtr();
+    this->PC += 2;
+    if (val & 0b00100000){
+        this->PC = ptr;
+    }
+}
 void CPU::CPX_I(){
     BYTE arg = this->ImmediateVal();
     this->c = this->X >= arg;
@@ -1219,6 +1440,19 @@ void CPU::CPX_ZP(){
     this->c = this->X >= arg;
     this->z = this->X == arg;
     this->n = this->X < arg;
+    this->PC += 2;
+}
+void CPU::SBC_ZP(){
+    BYTE val = this->ZeroPageVal();
+    if (!this->c){
+        val += 1;
+    }
+    bool isNegative = this->A < val;
+    this->c = this->A >= val;
+    this->A -= val;
+    this->n = (this->A & 0x10000000) ? true : false;
+    this->z = this->A == 0;
+    this->v = isNegative != this->n;
     this->PC += 2;
 }
 void CPU::INC_ZP(){
@@ -1289,6 +1523,15 @@ void CPU::INC_A(){
     this->mmu->StoreByte(ptr, val);
     this->PC += 3;
 }
+void CPU::BBS6(){
+    BYTE val = this->ZeroPageVal();
+    this->PC += 1;
+    unsigned short ptr = this->RelativePtr();
+    this->PC += 2;
+    if (val & 0b01000000){
+        this->PC = ptr;
+    }
+}
 void CPU::BEQ(){
     unsigned short arg = this->RelativePtr();
         if (this->z){
@@ -1319,4 +1562,22 @@ void CPU::PLX(){
     this->z = this->X == 0;
     this->n = (this->X & 0b10000000) ? true : false;
     this->PC += 1;
+}
+void CPU::INC_AX(){
+    BYTE val = this->AbsoluteXVal();
+    val += 1;
+    this->z = val == 0;
+    this->n = (val & 0b10000000) ? true : false;
+    unsigned short ptr = this->AbsoluteXPtr();
+    this->mmu->StoreByte(ptr, val);
+    this->PC += 2;
+}
+void CPU::BBS7(){
+    BYTE val = this->ZeroPageVal();
+    this->PC += 1;
+    unsigned short ptr = this->RelativePtr();
+    this->PC += 2;
+    if (val & 0b10000000){
+        this->PC = ptr;
+    }
 }
