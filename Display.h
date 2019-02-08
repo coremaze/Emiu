@@ -8,7 +8,7 @@
 #include <iostream>
 #define HEIGHT 67
 #define WIDTH 98
-#define SCALE 4
+#define SCALE 5
 
 
 class Display {

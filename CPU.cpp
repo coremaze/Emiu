@@ -35,7 +35,7 @@ opcode_func OPCODES[] = {
         (opcode_func)nullptr, //17
         CPU::CLC, //18
         (opcode_func)nullptr, //19
-        (opcode_func)nullptr, //1A
+        CPU::INC_ACC, //1A
         (opcode_func)nullptr, //1B
         (opcode_func)nullptr, //1C
         CPU::ORA_AX, //1D
@@ -67,7 +67,7 @@ opcode_func OPCODES[] = {
         CPU::RMB3_ZP, //37
         CPU::SEC, //38
         CPU::AND_AY, //39
-        (opcode_func)nullptr, //3A
+        CPU::DEC_ACC, //3A
         (opcode_func)nullptr, //3B
         (opcode_func)nullptr, //3C
         (opcode_func)nullptr, //3D
@@ -181,9 +181,9 @@ opcode_func OPCODES[] = {
         CPU::LDA_I, //A9
         CPU::TAX, //AA
         (opcode_func)nullptr, //AB
-        (opcode_func)nullptr, //AC
+        CPU::LDY_A, //AC
         CPU::LDA_A, //AD
-        (opcode_func)nullptr, //AE
+        CPU::LDX_A, //AE
         CPU::BBS2, //AF
         CPU::BCS, //B0
         CPU::LDA_INDIRECT_INDEXED, //B1
@@ -251,7 +251,7 @@ opcode_func OPCODES[] = {
         CPU::BBS6, //EF
         CPU::BEQ, //F0
         (opcode_func)nullptr, //F1
-        (opcode_func)nullptr, //F2
+        CPU::SBC_IZP, //F2
         (opcode_func)nullptr, //F3
         (opcode_func)nullptr, //F4
         (opcode_func)nullptr, //F5
@@ -722,6 +722,12 @@ void CPU::ORA_A(){
     this->n = (this->A & 0b10000000) ? true : false;
     this->PC += 3;
 }
+void CPU::INC_ACC(){
+    this->A += 1;
+    this->z = this->A  == 0;
+    this->n = (this->A  & 0b10000000) ? true : false;
+    this->PC += 1;
+}
 void CPU::ORA_AX(){
     BYTE val = this->AbsoluteXVal();
     this->A |= val;
@@ -846,6 +852,12 @@ void CPU::AND_AY(){
     this->z = this->A == 0;
     this->n = (this->A & 0b10000000) ? true : false;
     this->PC += 3;
+}
+void CPU::DEC_ACC(){
+    this->A -= 1;
+    this->z = this->A == 0;
+    this->n = (this->A & 0b10000000) ? true : false;
+    this->PC += 1;
 }
 void CPU::BBR3(){
     BYTE val = this->ZeroPageVal();
@@ -1224,11 +1236,25 @@ void CPU::TAX(){
     this->n = (this->X & 0b10000000) ? true : false;
     this->PC += 1;
 }
+void CPU::LDY_A(){
+    BYTE val = this->AbsoluteVal();
+    this->Y = val;
+    this->z = this->Y == 0;
+    this->n = (this->Y & 0b10000000) ? true : false;
+    this->PC += 3;
+}
 void CPU::LDA_A(){
     BYTE val = this->AbsoluteVal();
     this->A = val;
     this->z = this->A == 0;
     this->n = (this->A & 0b10000000) ? true : false;
+    this->PC += 3;
+}
+void CPU::LDX_A(){
+    BYTE val = this->AbsoluteVal();
+    this->X = val;
+    this->z = this->X == 0;
+    this->n = (this->X & 0b10000000) ? true : false;
     this->PC += 3;
 }
 void CPU::BBS2(){
@@ -1333,6 +1359,8 @@ void CPU::DEC_ZP(){
     BYTE val = this->ZeroPageVal();
     val -= 1;
     unsigned short ptr = this->ZeroPagePtr();
+    this->z = val == 0;
+    this->n = (val & 0b10000000) ? true : false;
     this->mmu->StoreByte(ptr, val);
     this->PC += 2;
 }
@@ -1540,6 +1568,19 @@ void CPU::BEQ(){
         else {
             this->PC += 2;
         }
+}
+void CPU::SBC_IZP(){
+    BYTE val = this->IndirectZeroPageVal();
+    if (!this->c){
+        val += 1;
+    }
+    bool isNegative = this->A < val;
+    this->c = this->A >= val;
+    this->A -= val;
+    this->n = (this->A & 0x10000000) ? true : false;
+    this->z = this->A == 0;
+    this->v = isNegative != this->n;
+    this->PC += 2;
 }
 void CPU::INC_ZPX(){
     BYTE val = this->ZeroPageXVal();

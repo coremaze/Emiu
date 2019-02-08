@@ -134,6 +134,7 @@ public:
     void BBR0(); //0F
     void BPL(); //10
     void CLC(); //18
+    void INC_ACC(); //1A
     void ORA_AX(); //1D
     void BBR1(); //1F
     void JSR(); //20
@@ -150,6 +151,7 @@ public:
     void RMB3_ZP(); //37
     void SEC(); //38
     void AND_AY(); //39
+    void DEC_ACC(); //3A
     void BBR3(); //3F
     void RTI(); //40
     void EOR_ZP(); //45
@@ -208,7 +210,9 @@ public:
     void TAY(); //A8
     void LDA_I(); //A9
     void TAX(); //AA
+    void LDY_A(); //AC
     void LDA_A(); //AD
+    void LDX_A(); //AE
     void BBS2(); //AF
     void BCS(); //B0
     void LDA_INDIRECT_INDEXED(); //B1
@@ -249,6 +253,7 @@ public:
     void INC_A(); //EE
     void BBS6(); //EF
     void BEQ(); //F0
+    void SBC_IZP(); //F2
     void INC_ZPX(); //F6
     void SMB7_ZP(); //F7
     void PLX(); //FA

@@ -14,7 +14,7 @@ void HexDump(unsigned char* bin, unsigned int start, unsigned int end) {
 
 int main(int argc, char *argv[])
 {
-    CPU* cpu = new CPU("OTP.dat", "nova_original.dat");
+    CPU* cpu = new CPU("OTP.dat", "HexEditor.dat");
 
     cpu->display->Update();
     Sleep(1000); //give time to hold keys if desired

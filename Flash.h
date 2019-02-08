@@ -21,8 +21,8 @@ public:
 
     Flash();
     unsigned short GetExpectedWriteAddress();
-    void Write(unsigned short address, BYTE by);
-    BYTE Read(unsigned short address);
+    void Write(unsigned int address, BYTE by);
+    BYTE Read(unsigned int address);
     void ResetWriteCycle();
     BYTE GetStatusRegister();
     void SectorErase(unsigned short address);

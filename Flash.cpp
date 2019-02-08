@@ -15,7 +15,7 @@ unsigned short Flash::GetExpectedWriteAddress(){
                                   0xAAA};//6
     return addresses[this->write_cycle-1];
 }
-void Flash::Write(unsigned short address, BYTE by){
+void Flash::Write(unsigned int address, BYTE by){
     this->mode = COMMAND_MODE;
     unsigned short expected_address = this->GetExpectedWriteAddress();
     this->current_command <<= 8;
@@ -26,13 +26,13 @@ void Flash::Write(unsigned short address, BYTE by){
             case 1: //1st bus write cycle
                 if (this->current_command == 0xB0){
                     //Erase-Suspend command finished
-                    printf("Erase-Suspend not implemented.\n");
+                    //printf("Erase-Suspend not implemented.\n");
                     this->ResetWriteCycle();
                     return;
                 }
                 else if (this->current_command == 0x30){
                     //Erase-Resume command finished
-                    printf("Erase-Resume not implemented.\n");
+                    //printf("Erase-Resume not implemented.\n");
                     this->ResetWriteCycle();
                     return;
                 }
@@ -252,7 +252,7 @@ void Flash::Write(unsigned short address, BYTE by){
         }
     }
 }
-BYTE Flash::Read(unsigned short address){
+BYTE Flash::Read(unsigned int address){
     if (this->mode == READ_MODE){
         return this->memory[address];
     }
