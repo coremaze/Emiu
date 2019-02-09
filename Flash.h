@@ -17,18 +17,18 @@ public:
     BYTE mode;
     unsigned long long int current_command;
     BYTE write_cycle;
-    unsigned short last_operation_address;
+    unsigned int last_operation_address;
 
     Flash();
-    unsigned short GetExpectedWriteAddress();
+    unsigned int GetExpectedWriteAddress();
     void Write(unsigned int address, BYTE by);
     BYTE Read(unsigned int address);
     void ResetWriteCycle();
     BYTE GetStatusRegister();
-    void SectorErase(unsigned short address);
-    void BlockErase(unsigned short address);
+    void SectorErase(unsigned int address);
+    void BlockErase(unsigned int address);
     void ChipErase();
-    void ByteProgram(unsigned short address, BYTE by);
+    void ByteProgram(unsigned int address, BYTE by);
 };
 
 #endif // FLASH_H

@@ -49,6 +49,21 @@ void Controller::Update(){
     if (state[SDL_SCANCODE_A]){
         keys &= ACTION;
     }
+    if (state[SDL_SCANCODE_PAGEUP]){
+        keys &= SCREEN_TOP_RIGHT;
+    }
+    if (state[SDL_SCANCODE_PAGEDOWN]){
+        keys &= SCREEN_BOTTOM_RIGHT;
+    }
+    if (state[SDL_SCANCODE_HOME]){
+        keys &= SCREEN_TOP_LEFT;
+    }
+    if (state[SDL_SCANCODE_END]){
+        keys &= SCREEN_BOTTOM_LEFT;
+    }
+    if (state[SDL_SCANCODE_M]){
+        keys &= MUTE;
+    }
 
     if (this->controls != keys){
         ////PT Interrupt

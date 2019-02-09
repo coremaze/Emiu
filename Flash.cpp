@@ -6,8 +6,8 @@ Flash::Flash(){
     this->write_cycle = 1;
     this->last_operation_address = 0xFFFF;
 }
-unsigned short Flash::GetExpectedWriteAddress(){
-    unsigned short addresses[] = {0xAAA, //1
+unsigned int Flash::GetExpectedWriteAddress(){
+    unsigned int addresses[] = {0xAAA, //1
                                   0x555, //2
                                   0xAAA, //3
                                   0xAAA, //4
@@ -266,7 +266,6 @@ BYTE Flash::Read(unsigned int address){
             return this->GetStatusRegister();
         }
     }
-    return 1;
 }
 void Flash::ResetWriteCycle(){
     this->write_cycle = 1;
@@ -277,9 +276,10 @@ BYTE Flash::GetStatusRegister(){
     //DQ6 would normally alternate while program or erase is in progress, but the emulator does not do this asynchronously
     //DQ7 would normally be 0 while operation is in progress, but the emulator does not do this asynchronously
     return 0b11000000;
+
 }
 
-void Flash::SectorErase(unsigned short address){
+void Flash::SectorErase(unsigned int address){
     this->mode = SECTOR_ERASE_MODE;
     this->last_operation_address = address;
     printf("A sector erase has been issued.\n");
@@ -288,7 +288,7 @@ void Flash::SectorErase(unsigned short address){
     }
 
 }
-void Flash::BlockErase(unsigned short address){
+void Flash::BlockErase(unsigned int address){
     printf("A block erase has been issued.\n");
     this->mode = BLOCK_ERASE_MODE;
     this->last_operation_address = address;
@@ -303,7 +303,7 @@ void Flash::ChipErase(){
         this->memory[i] = 0xFF;
     }
 }
-void Flash::ByteProgram(unsigned short address, BYTE by){
+void Flash::ByteProgram(unsigned int address, BYTE by){
     //printf("A byte program has been issued.\n");
     this->mode = BYTE_PROGRAM_MODE;
     this->last_operation_address = address;

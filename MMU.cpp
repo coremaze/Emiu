@@ -47,7 +47,7 @@ void MMU::StoreByte(unsigned short address, BYTE by){
             this->cpu->WriteVideoRegister(address, by);
         }
         else if ( (brr & 0b1001110000000000) == 0b10000000000 ){ //Flash?
-            printf("BRR Warning: PRR: %04X PC: %04X tried to write %02X to Flash:%04X\n", this->cpu->GetPRR(), (unsigned int)this->cpu->PC, (unsigned int)by, (unsigned int)paged_location);
+            printf("BRR Warning: PRR: %04X PC: %04X tried to write %02X to Flash:%04X\n", this->cpu->GetEffectivePRR(), (unsigned int)this->cpu->PC, (unsigned int)by, (unsigned int)paged_location);
             //this->cpu->Flash[paged_location % FLASH_SIZE] = by;
             this->cpu->flash->Write(paged_location % FLASH_SIZE, by);
         }
@@ -59,7 +59,7 @@ void MMU::StoreByte(unsigned short address, BYTE by){
         }
     }
     else if ((address >= PRR_START) && (address < (PRR_START + PRR_LENGTH))){ //PRR?
-        unsigned short prr = this->cpu->GetPRR();
+        unsigned short prr = this->cpu->GetEffectivePRR();
         unsigned char page = prr & 0x7F; //Select page for OTP or flash
         unsigned int paged_location = (address - PRR_START) + PRR_LENGTH * page; //Calculate location for OTP or flash
         if ( ((prr & 0b1000111100000000) == 0b111100000000) || (prr == 0) ){ //OTP?
@@ -69,7 +69,7 @@ void MMU::StoreByte(unsigned short address, BYTE by){
             this->cpu->WriteVideoRegister(address, by);
         }
         else if ( (prr & 0b1000111000000000) == 0b1000000000 ){ //Flash?
-            //printf("PRR Warning: PRR: %04X PC: %04X tried to write %02X to Flash.\n", this->cpu->GetPRR(), (unsigned int)this->cpu->PC, (unsigned int)by);
+            //printf("PRR Warning: PRR: %04X PC: %04X tried to write %02X to Flash.\n", this->cpu->GetEffectivePRR(), (unsigned int)this->cpu->PC, (unsigned int)by);
             //this->cpu->Flash[paged_location % FLASH_SIZE] = by;
             this->cpu->flash->Write(paged_location % FLASH_SIZE, by);
         }
@@ -77,7 +77,7 @@ void MMU::StoreByte(unsigned short address, BYTE by){
             this->cpu->RAM[address] = by; //Fall through
         }
         else {
-            printf("Invalid PRR mask: %04X\n", this->cpu->GetPRR());
+            printf("Invalid PRR mask: %04X\n", this->cpu->GetEffectivePRR());
         }
     }
     else if ((address >= DRR_START) && (address < (DRR_START + DRR_LENGTH))){ //PRR?
@@ -91,7 +91,7 @@ void MMU::StoreByte(unsigned short address, BYTE by){
             this->cpu->WriteVideoRegister(address, by);
         }
         else if ( (drr & 0b1000011100000000) == 0b100000000 ){ //Flash?
-            //printf("DRR Warning: PRR: %04X PC: %04X tried to write %02X to Flash:%04X\n", this->cpu->GetPRR(), (unsigned int)this->cpu->PC, (unsigned int)by, (unsigned int)paged_location);
+            //printf("DRR Warning: PRR: %04X PC: %04X tried to write %02X to Flash:%04X\n", this->cpu->GetEffectivePRR(), (unsigned int)this->cpu->PC, (unsigned int)by, (unsigned int)paged_location);
             //this->cpu->Flash[paged_location % FLASH_SIZE] = by;
             this->cpu->flash->Write(paged_location % FLASH_SIZE, by);
         }
@@ -154,7 +154,7 @@ BYTE MMU::ReadByte(unsigned short address){
         }
     }
     else if ((address >= PRR_START) && (address < (PRR_START + PRR_LENGTH))){ //PRR?
-        unsigned short prr = this->cpu->GetPRR();
+        unsigned short prr = this->cpu->GetEffectivePRR();
         unsigned char page = prr & 0x7F; //Select page for OTP or flash
         unsigned int paged_location = (address - PRR_START) + PRR_LENGTH * page; //Calculate location for OTP or flash
         if ( ((prr & 0b1000111100000000) == 0b111100000000) || (prr == 0) ){ //OTP?
@@ -171,7 +171,7 @@ BYTE MMU::ReadByte(unsigned short address){
             return this->cpu->RAM[address]; //Fall through
         }
         else {
-            printf("Invalid PRR mask: %04X\n", this->cpu->GetPRR());
+            printf("Invalid PRR mask: %04X\n", this->cpu->GetEffectivePRR());
         }
     }
     else if ((address >= DRR_START) && (address < (DRR_START + DRR_LENGTH))){ //DRR?

@@ -42,9 +42,12 @@ bool BTInterrupt::Update(){
     if ( (old_clock / 16) < (this->clock / 16) ){ //512Hz
         BTREQ_data |= 0b100000;
     }
-    //if ( (old_clock / 4) < (this->clock / 4) ){ //2048Hz
-    //    BTREQ_data |= 0b1000000;
-    //}
+    if ( (old_clock / 4) < (this->clock / 4) ){ //2048Hz
+        BTREQ_data |= 0b1000000;
+    }
+    if ( (old_clock) < (this->clock) ){ //8192Hz
+        BTREQ_data |= 0b10000000;
+    }
 
     BTREQ_data &= BTEN_data;
     this->cpu->memRegisters[BTREQ] = BTREQ_data;

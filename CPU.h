@@ -58,12 +58,11 @@ public:
 
     BTInterrupt* btInterrupt;
 
-    unsigned short pre_interrupt_PRR;
-
     CPU(char* OTPFile, char* flashFile);
     void PrintState();
     unsigned short GetIRR();
     unsigned short GetPRR();
+    unsigned short GetEffectivePRR();
     unsigned short GetDRR();
     unsigned short GetBRR();
     void BeginInterrupt();
@@ -133,12 +132,15 @@ public:
     void ASL_A(); //0E
     void BBR0(); //0F
     void BPL(); //10
+    void RMB1_ZP(); //17
     void CLC(); //18
+    void ORA_AY(); //19
     void INC_ACC(); //1A
     void ORA_AX(); //1D
     void BBR1(); //1F
     void JSR(); //20
     void BIT_ZP(); //24
+    void AND_ZP(); //25
     void ROL_ZP(); //26
     void RMB2_ZP(); //27
     void PLP(); //28
@@ -152,6 +154,7 @@ public:
     void SEC(); //38
     void AND_AY(); //39
     void DEC_ACC(); //3A
+    void AND_AX(); //3D
     void BBR3(); //3F
     void RTI(); //40
     void EOR_ZP(); //45
@@ -162,10 +165,12 @@ public:
     void LSR_ACC(); //4A
     void JMP_A(); //4C
     void EOR_A(); //4D
+    void LSR_A(); //4E  //Used for 1.09.03
     void BBR4(); //4F
     void RMB5_ZP(); //57
     void CLI(); //58
     void PHY(); //5A
+    void BBR5(); //5F
     void RTS(); //60
     void STZ_ZP(); //64
     void ADC_ZP(); //65
@@ -175,18 +180,23 @@ public:
     void ROR_ACC(); //6A
     void JMP_I(); //6C
     void ADC_A(); //6D
+    void ROR_A(); //6E
     void BBR6(); //6F
+    void ADC_INDIRECT_INDEXED(); //71
     void ADC_IZP(); //72
     void RMB7_ZP(); //77
     void SEI(); //78
     void PLY(); //7A
+    void JMP_ABSOLUTE_INDEXED_INDIRECT(); //7C
     void BBR7(); //7F
     void BRA(); //80
     void STY_ZP(); //84
     void STA_ZP(); //85
+    void STX_ZP(); //86
     void SMB0_ZP(); //87
     void DEY(); //88
     void TXA(); //8A
+    void STY_A(); //8C
     void STA_A(); //8D
     void STX_A(); //8E
     void BBS0(); //8F
@@ -200,6 +210,8 @@ public:
     void TXS(); //9A
     void STZ_A(); //9C
     void STA_AX(); //9D
+    void STZ_AX(); //9E
+    void BBS1(); //9F
     void LDY_I(); //A0
     void LDA_INDEXED_INDIRECT(); //A1
     void LDX_I(); //A2
@@ -217,11 +229,13 @@ public:
     void BCS(); //B0
     void LDA_INDIRECT_INDEXED(); //B1
     void LDA_IZP(); //B2
+    void LDY_ZPX(); //B4
     void LDA_ZPX(); //B5
     void SMB3_ZP(); //B7
     void LDA_AY(); //B9
     void LDY_AX(); //BC
     void LDA_AX(); //BD
+    void LDX_AY(); //BE  used for 1.09.03
     void BBS3(); //BF
     void CPY_I(); //C0
     void CPY_ZP(); //C4
@@ -238,7 +252,9 @@ public:
     void BBS4(); //CF
     void BNE(); //D0
     void DEC_ZPX(); //D6
+    void SMB5_ZP(); //D7
     void PHX(); //DA
+    void CMP_AX(); //DD
     void BBS5(); //DF
     void CPX_I(); //E0
     void CPX_ZP(); //E4
