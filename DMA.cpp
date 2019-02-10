@@ -119,6 +119,9 @@ void DMA::Execute(){
     BYTE dest_mode = (DMOD_value & 0b001100) >> 2;
     BYTE func = (DMOD_value & 0b110000) >> 4;
 
+    //printf("PC:%04X %02X DRR:%04X\n", this->cpu->PC, dest_mode, this->cpu->GetDRR());
+
+
     unsigned short old_sourcePtr = this->sourcePtr;
     unsigned short old_destPtr = this->destPtr;
 
@@ -145,17 +148,16 @@ void DMA::Execute(){
         else if (func == 0b11){
             new_byte = source_byte & dest_byte;
         }
-
         this->cpu->mmu->StoreByte(this->destPtr, new_byte);
 
         //Pointer modes
         if (source_mode == 0b00){ //Continue mode
             this->sourcePtr++;
-            this->sourcePtr = this->sourcePtr | 0x8000;
+            this->sourcePtr = this->sourcePtr;// | 0x8000;
         }
         else if (source_mode == 0b01) { //Reload mode
             this->sourcePtr++;
-            this->sourcePtr = this->sourcePtr | 0x8000;
+            this->sourcePtr = this->sourcePtr;// | 0x8000;
         }
         else { //Fixed mode
 

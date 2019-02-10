@@ -43,7 +43,7 @@ public:
 
     //Memory
     BYTE memRegisters[0x80];
-    BYTE RAM[0x10000];
+    BYTE RAM[0x1000000];
     BYTE videoRegisters[0x2];
     BYTE OTP[OTP_SIZE];
     //BYTE Flash[FLASH_SIZE];
@@ -253,6 +253,7 @@ public:
     void BNE(); //D0
     void DEC_ZPX(); //D6
     void SMB5_ZP(); //D7
+    void CLD(); //D8
     void PHX(); //DA
     void CMP_AX(); //DD
     void BBS5(); //DF
@@ -272,6 +273,7 @@ public:
     void SBC_IZP(); //F2
     void INC_ZPX(); //F6
     void SMB7_ZP(); //F7
+    void SED(); //F8
     void PLX(); //FA
     void INC_AX(); //FE
     void BBS7(); //FF

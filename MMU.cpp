@@ -52,10 +52,10 @@ void MMU::StoreByte(unsigned short address, BYTE by){
             this->cpu->flash->Write(paged_location % FLASH_SIZE, by);
         }
         else if ( (brr & 0x8000) == 0x8000 ){ //Internal RAM 0x2000 ~ 0x3FFF
-            this->cpu->RAM[address] = by; //Fall through
+            this->cpu->RAM[paged_location % 0x1000000] = by; //Fall through
         }
         else {
-            printf("Invalid BRR mask: %04X\n", this->cpu->GetBRR());
+            //printf("Invalid BRR mask: %04X\n", this->cpu->GetBRR());
         }
     }
     else if ((address >= PRR_START) && (address < (PRR_START + PRR_LENGTH))){ //PRR?
@@ -74,7 +74,7 @@ void MMU::StoreByte(unsigned short address, BYTE by){
             this->cpu->flash->Write(paged_location % FLASH_SIZE, by);
         }
         else if ( (prr & 0x8000) == 0x8000 ){ //Internal RAM 0x2000 ~ 0x3FFF
-            this->cpu->RAM[address] = by; //Fall through
+            this->cpu->RAM[paged_location % 0x1000000] = by; //Fall through
         }
         else {
             printf("Invalid PRR mask: %04X\n", this->cpu->GetEffectivePRR());
@@ -96,7 +96,7 @@ void MMU::StoreByte(unsigned short address, BYTE by){
             this->cpu->flash->Write(paged_location % FLASH_SIZE, by);
         }
         else if ( (drr & 0x8000) == 0x8000 ){ //Internal RAM 0x2000 ~ 0x3FFF
-            this->cpu->RAM[address] = by; //Fall through
+            this->cpu->RAM[paged_location % 0x1000000] = by; //Fall through
         }
         else {
             printf("(Write) Invalid DRR mask: %04X PC:%04X\n", this->cpu->GetDRR(), this->cpu->PC);
@@ -147,7 +147,7 @@ BYTE MMU::ReadByte(unsigned short address){
             return this->cpu->flash->Read(paged_location % FLASH_SIZE);
         }
         else if ( (brr & 0x8000) == 0x8000 ){ //Internal RAM 0x2000 ~ 0x3FFF
-            return this->cpu->RAM[address];
+            return this->cpu->RAM[paged_location % 0x1000000];
         }
         else {
             printf("Invalid BRR mask: %04X\n", this->cpu->GetBRR());
@@ -168,7 +168,7 @@ BYTE MMU::ReadByte(unsigned short address){
             return this->cpu->flash->Read(paged_location % FLASH_SIZE);
         }
         else if ( (prr & 0x8000) == 0x8000 ){ //Internal RAM 0x2000 ~ 0x3FFF
-            return this->cpu->RAM[address]; //Fall through
+            return this->cpu->RAM[paged_location % 0x1000000]; //Fall through
         }
         else {
             printf("Invalid PRR mask: %04X\n", this->cpu->GetEffectivePRR());
@@ -189,7 +189,7 @@ BYTE MMU::ReadByte(unsigned short address){
             return this->cpu->flash->Read(paged_location % FLASH_SIZE);
         }
         else if ( (drr & 0x8000) == 0x8000 ){ //Internal RAM 0x2000 ~ 0x3FFF
-            return this->cpu->RAM[address]; //Fall through
+            return this->cpu->RAM[paged_location % 0x1000000]; //Fall through
         }
         else {
             printf("(Read) Invalid DRR mask: %04X PC:%04X\n", this->cpu->GetDRR(), this->cpu->PC);
