@@ -21,7 +21,7 @@ opcode_func OPCODES[] = {
         CPU::ORA_I, //09
         CPU::ASL_ACC, //0A
         (opcode_func)nullptr, //0B
-        (opcode_func)nullptr, //0C
+        CPU::TSB_A, //0C
         CPU::ORA_A, //0D
         CPU::ASL_A, //0E
         CPU::BBR0, //0F
@@ -696,6 +696,13 @@ void CPU::ASL_ACC(){
     this->n = (this->A & 0b10000000) ? true : false;
     this->PC += 1;
 }
+void CPU::TSB_A(){
+    BYTE val = this->AbsoluteVal();
+    this->z = (val & this->A) ? true : false;
+    val = val | this->A;
+    unsigned short ptr = this->AbsolutePtr();
+    this->mmu->StoreByte(ptr, val);
+}
 void CPU::ORA_A(){
     BYTE val = this->AbsoluteVal();
     this->A |= val;
@@ -781,8 +788,8 @@ void CPU::BIT_ZP(){
     BYTE arg = this->ZeroPageVal();
     BYTE result = arg & this->A;
     this->z = result == 0;
-    this->v = bool(arg & 0b01000000);
-    this->n = bool(arg & 0b10000000);
+    this->v = (arg & 0b01000000) ? true : false;
+    this->n = (arg & 0b10000000) ? true : false;
     this->PC += 2;
 }
 void CPU::AND_ZP(){
@@ -1027,6 +1034,7 @@ void CPU::ADC_ZP(){
         unsigned short total = (unsigned short)this->A + (unsigned short)add + (this->c ? 1 : 0);
         this->A += add + (this->c ? 1 : 0);
         this->c = total > 0xFF;
+        this->v = ~(this->A ^ add) & ((this->A ^ total) & 0x80);
         this->z = this->A == 0;
         this->n = (this->A & 0b10000000) ? true : false;
     }
@@ -1062,6 +1070,7 @@ void CPU::ADC_I(){
         unsigned short total = (unsigned short)this->A + (unsigned short)add + (this->c ? 1 : 0);
         this->A += add + (this->c ? 1 : 0);
         this->c = total > 0xFF;
+        this->v = ~(this->A ^ add) & ((this->A ^ total) & 0x80);
         this->z = this->A == 0;
         this->n = (this->A & 0b10000000) ? true : false;
     }
@@ -1099,6 +1108,7 @@ void CPU::ADC_A(){
         unsigned short total = (unsigned short)this->A + (unsigned short)add + (this->c ? 1 : 0);
         this->A += add + (this->c ? 1 : 0);
         this->c = total > 0xFF;
+        this->v = ~(this->A ^ add) & ((this->A ^ total) & 0x80);
         this->z = this->A == 0;
         this->n = (this->A & 0b10000000) ? true : false;
     }
@@ -1144,6 +1154,7 @@ void CPU::ADC_INDIRECT_INDEXED(){
         unsigned short total = (unsigned short)this->A + (unsigned short)add + (this->c ? 1 : 0);
         this->A += add + (this->c ? 1 : 0);
         this->c = total > 0xFF;
+        this->v = ~(this->A ^ add) & ((this->A ^ total) & 0x80);
         this->z = this->A == 0;
         this->n = (this->A & 0b10000000) ? true : false;
     }
@@ -1166,6 +1177,7 @@ void CPU::ADC_IZP(){
         unsigned short total = (unsigned short)this->A + (unsigned short)add + (this->c ? 1 : 0);
         this->A += add + (this->c ? 1 : 0);
         this->c = total > 0xFF;
+        this->v = ~(this->A ^ add) & ((this->A ^ total) & 0x80);
         this->z = this->A == 0;
         this->n = (this->A & 0b10000000) ? true : false;
     }
@@ -1528,21 +1540,24 @@ void CPU::CPY_I(){
     BYTE arg = this->ImmediateVal();
     this->c = this->Y >= arg;
     this->z = this->Y == arg;
-    this->n = this->Y < arg;
+    BYTE result = this->A - arg;
+    this->n = (result & 0b10000000) ? true : false;
     this->PC += 2;
 }
 void CPU::CPY_ZP(){
     BYTE arg = this->ZeroPageVal();
     this->c = this->Y >= arg;
     this->z = this->Y == arg;
-    this->n = this->Y < arg;
+    BYTE result = this->A - arg;
+    this->n = (result & 0b10000000) ? true : false;
     this->PC += 2;
 }
 void CPU::CMP_ZP(){
     BYTE arg = this->ZeroPageVal();
     this->c = this->A >= arg;
     this->z = this->A == arg;
-    this->n = this->A < arg;
+    BYTE result = this->A - arg;
+    this->n = (result & 0b10000000) ? true : false;
     this->PC += 2;
 }
 void CPU::DEC_ZP(){
@@ -1571,7 +1586,8 @@ void CPU::CMP_I(){
     BYTE val = this->ImmediateVal();
     this->c = this->A >= val;
     this->z = this->A == val;
-    this->n = this->A < val;
+    BYTE result = this->A - val;
+    this->n = (result & 0b10000000) ? true : false;
     this->PC += 2;
 }
 void CPU::DEX(){
@@ -1587,14 +1603,16 @@ void CPU::CPY_A(){
     BYTE val = this->AbsoluteVal();
     this->c = this->Y >= val;
     this->z = this->Y == val;
-    this->n = this->Y < val;
+    BYTE result = this->A - val;
+    this->n = (result & 0b10000000) ? true : false;
     this->PC += 3;
 }
 void CPU::CMP_A(){
     BYTE val = this->AbsoluteVal();
     this->c = this->A >= val;
     this->z = this->A == val;
-    this->n = this->A < val;
+    BYTE result = this->A - val;
+    this->n = (result & 0b10000000) ? true : false;
     this->PC += 3;
 }
 void CPU::DEC_A(){
@@ -1652,7 +1670,8 @@ void CPU::CMP_AX(){
     BYTE val = this->AbsoluteXVal();
     this->c = this->A >= val;
     this->z = this->A == val;
-    this->n = this->A < val;
+    BYTE result = this->A - val;
+    this->n = (result & 0b10000000) ? true : false;
     this->PC += 3;
 }
 void CPU::BBS5(){
@@ -1668,14 +1687,16 @@ void CPU::CPX_I(){
     BYTE arg = this->ImmediateVal();
     this->c = this->X >= arg;
     this->z = this->X == arg;
-    this->n = this->X < arg;
+    BYTE result = this->A - arg;
+    this->n = (result & 0b10000000) ? true : false;
     this->PC += 2;
 }
 void CPU::CPX_ZP(){
     BYTE arg = this->ZeroPageVal();
     this->c = this->X >= arg;
     this->z = this->X == arg;
-    this->n = this->X < arg;
+    BYTE result = this->A - arg;
+    this->n = (result & 0b10000000) ? true : false;
     this->PC += 2;
 }
 void CPU::SBC_ZP(){
@@ -1687,7 +1708,7 @@ void CPU::SBC_ZP(){
         bool isNegative = this->A < val;
         this->c = this->A >= val;
         this->A -= val;
-        this->n = (this->A & 0x10000000) ? true : false;
+        this->n = (this->A & 0b10000000) ? true : false;
         this->z = this->A == 0;
         this->v = isNegative != this->n;
     }
@@ -1739,7 +1760,7 @@ void CPU::SBC_I(){
         bool isNegative = this->A < val;
         this->c = this->A >= val;
         this->A -= val;
-        this->n = (this->A & 0x10000000) ? true : false;
+        this->n = (this->A & 0b10000000) ? true : false;
         this->z = this->A == 0;
         this->v = isNegative != this->n;
     }
@@ -1766,7 +1787,8 @@ void CPU::CPX_A(){
     BYTE val = this->AbsoluteVal();
     this->c = this->X >= val;
     this->z = this->X == val;
-    this->n = this->X < val;
+    BYTE result = this->A - val;
+    this->n = (result & 0b10000000) ? true : false;
     this->PC += 3;
 }
 void CPU::SBC_A(){
@@ -1778,7 +1800,7 @@ void CPU::SBC_A(){
         bool isNegative = this->A < val;
         this->c = this->A >= val;
         this->A -= val;
-        this->n = (this->A & 0x10000000) ? true : false;
+        this->n = (this->A & 0b10000000) ? true : false;
         this->z = this->A == 0;
         this->v = isNegative != this->n;
     }
@@ -1834,7 +1856,7 @@ void CPU::SBC_IZP(){
         bool isNegative = this->A < val;
         this->c = this->A >= val;
         this->A -= val;
-        this->n = (this->A & 0x10000000) ? true : false;
+        this->n = (this->A & 0b10000000) ? true : false;
         this->z = this->A == 0;
         this->v = isNegative != this->n;
     }
