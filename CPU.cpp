@@ -758,8 +758,8 @@ void CPU::ORA_AY(){
 }
 void CPU::INC_ACC(){
     this->A += 1;
-    this->z = this->A  == 0;
-    this->n = (this->A  & 0b10000000) ? true : false;
+    this->z = this->A == 0;
+    this->n = (this->A & 0b10000000) ? true : false;
     this->PC += 1;
 }
 void CPU::ORA_AX(){
@@ -1030,25 +1030,20 @@ void CPU::STZ_ZP(){
 }
 void CPU::ADC_ZP(){
     BYTE add = this->ZeroPageVal();
-    if (!this->d){
-        unsigned short total = (unsigned short)this->A + (unsigned short)add + (this->c ? 1 : 0);
-        this->A += add + (this->c ? 1 : 0);
-        this->c = total > 0xFF;
-        this->v = ~(this->A ^ add) & ((this->A ^ total) & 0x80);
-        this->z = this->A == 0;
-        this->n = (this->A & 0b10000000) ? true : false;
+    unsigned short sum = this->A + add + (this->c ? 1 : 0);
+    if (this->d){
+        if (((this->A ^ add ^ sum) & 0x10) == 0x10){
+            sum += 0x06;
+        }
+        if ((sum & 0xF0) > 0x90){
+            sum += 0x60;
+        }
     }
-    else {
-        add = BCDToNumber(add);
-        this->A = BCDToNumber(this->A);
-        unsigned short total = (unsigned short)this->A + (unsigned short)add + (this->c ? 1 : 0);
-        this->A += add + (this->c ? 1 : 0);
-        this->A = NumberToBCD(this->A);
-        this->c = total > 99;
-        this->z = this->A == 0;
-        this->n = this->A >= 50;
-
-    }
+    this->v = (((this->A ^ sum) & (add ^ this->A) & 0x80) == 0x80) ? true : false;
+    this->A = (BYTE)sum;
+    this->c = sum > 0xFF;
+    this->z = this->A == 0;
+    this->n = (this->A & 0b10000000) ? true : false;
     this->PC += 2;
 }
 void CPU::RMB6_ZP(){
@@ -1066,25 +1061,20 @@ void CPU::PLA(){
 }
 void CPU::ADC_I(){
     BYTE add = this->ImmediateVal();
-    if (!this->d){
-        unsigned short total = (unsigned short)this->A + (unsigned short)add + (this->c ? 1 : 0);
-        this->A += add + (this->c ? 1 : 0);
-        this->c = total > 0xFF;
-        this->v = ~(this->A ^ add) & ((this->A ^ total) & 0x80);
-        this->z = this->A == 0;
-        this->n = (this->A & 0b10000000) ? true : false;
+    unsigned short sum = this->A + add + (this->c ? 1 : 0);
+    if (this->d){
+        if (((this->A ^ add ^ sum) & 0x10) == 0x10){
+            sum += 0x06;
+        }
+        if ((sum & 0xF0) > 0x90){
+            sum += 0x60;
+        }
     }
-    else {
-        add = BCDToNumber(add);
-        this->A = BCDToNumber(this->A);
-        unsigned short total = (unsigned short)this->A + (unsigned short)add + (this->c ? 1 : 0);
-        this->A += add + (this->c ? 1 : 0);
-        this->A = NumberToBCD(this->A);
-        this->c = total > 99;
-        this->z = this->A == 0;
-        this->n = this->A >= 50;
-
-    }
+    this->v = (((this->A ^ sum) & (add ^ this->A) & 0x80) == 0x80) ? true : false;
+    this->A = (BYTE)sum;
+    this->c = sum > 0xFF;
+    this->z = this->A == 0;
+    this->n = (this->A & 0b10000000) ? true : false;
     this->PC += 2;
 }
 void CPU::ROR_ACC(){
@@ -1104,25 +1094,20 @@ void CPU::JMP_I(){
 }
 void CPU::ADC_A(){
     BYTE add = this->AbsoluteVal();
-    if (!this->d){
-        unsigned short total = (unsigned short)this->A + (unsigned short)add + (this->c ? 1 : 0);
-        this->A += add + (this->c ? 1 : 0);
-        this->c = total > 0xFF;
-        this->v = ~(this->A ^ add) & ((this->A ^ total) & 0x80);
-        this->z = this->A == 0;
-        this->n = (this->A & 0b10000000) ? true : false;
+    unsigned short sum = this->A + add + (this->c ? 1 : 0);
+    if (this->d){
+        if (((this->A ^ add ^ sum) & 0x10) == 0x10){
+            sum += 0x06;
+        }
+        if ((sum & 0xF0) > 0x90){
+            sum += 0x60;
+        }
     }
-    else {
-        add = BCDToNumber(add);
-        this->A = BCDToNumber(this->A);
-        unsigned short total = (unsigned short)this->A + (unsigned short)add + (this->c ? 1 : 0);
-        this->A += add + (this->c ? 1 : 0);
-        this->A = NumberToBCD(this->A);
-        this->c = total > 99;
-        this->z = this->A == 0;
-        this->n = this->A >= 50;
-
-    }
+    this->v = (((this->A ^ sum) & (add ^ this->A) & 0x80) == 0x80) ? true : false;
+    this->A = (BYTE)sum;
+    this->c = sum > 0xFF;
+    this->z = this->A == 0;
+    this->n = (this->A & 0b10000000) ? true : false;
     this->PC += 3;
 }
 void CPU::ROR_A(){
@@ -1150,48 +1135,38 @@ void CPU::BBR6(){
 }
 void CPU::ADC_INDIRECT_INDEXED(){
     BYTE add = this->IndirectIndexedVal();
-    if (!this->d){
-        unsigned short total = (unsigned short)this->A + (unsigned short)add + (this->c ? 1 : 0);
-        this->A += add + (this->c ? 1 : 0);
-        this->c = total > 0xFF;
-        this->v = ~(this->A ^ add) & ((this->A ^ total) & 0x80);
-        this->z = this->A == 0;
-        this->n = (this->A & 0b10000000) ? true : false;
+    unsigned short sum = this->A + add + (this->c ? 1 : 0);
+    if (this->d){
+        if (((this->A ^ add ^ sum) & 0x10) == 0x10){
+            sum += 0x06;
+        }
+        if ((sum & 0xF0) > 0x90){
+            sum += 0x60;
+        }
     }
-    else {
-        add = BCDToNumber(add);
-        this->A = BCDToNumber(this->A);
-        unsigned short total = (unsigned short)this->A + (unsigned short)add + (this->c ? 1 : 0);
-        this->A += add + (this->c ? 1 : 0);
-        this->A = NumberToBCD(this->A);
-        this->c = total > 99;
-        this->z = this->A == 0;
-        this->n = this->A >= 50;
-
-    }
+    this->v = (((this->A ^ sum) & (add ^ this->A) & 0x80) == 0x80) ? true : false;
+    this->A = (BYTE)sum;
+    this->c = sum > 0xFF;
+    this->z = this->A == 0;
+    this->n = (this->A & 0b10000000) ? true : false;
     this->PC += 2;
 }
 void CPU::ADC_IZP(){
     BYTE add = this->IndirectZeroPageVal();
-    if (!this->d){
-        unsigned short total = (unsigned short)this->A + (unsigned short)add + (this->c ? 1 : 0);
-        this->A += add + (this->c ? 1 : 0);
-        this->c = total > 0xFF;
-        this->v = ~(this->A ^ add) & ((this->A ^ total) & 0x80);
-        this->z = this->A == 0;
-        this->n = (this->A & 0b10000000) ? true : false;
+    unsigned short sum = this->A + add + (this->c ? 1 : 0);
+    if (this->d){
+        if (((this->A ^ add ^ sum) & 0x10) == 0x10){
+            sum += 0x06;
+        }
+        if ((sum & 0xF0) > 0x90){
+            sum += 0x60;
+        }
     }
-    else {
-        add = BCDToNumber(add);
-        this->A = BCDToNumber(this->A);
-        unsigned short total = (unsigned short)this->A + (unsigned short)add + (this->c ? 1 : 0);
-        this->A += add + (this->c ? 1 : 0);
-        this->A = NumberToBCD(this->A);
-        this->c = total > 99;
-        this->z = this->A == 0;
-        this->n = this->A >= 50;
-
-    }
+    this->v = (((this->A ^ sum) & (add ^ this->A) & 0x80) == 0x80) ? true : false;
+    this->A = (BYTE)sum;
+    this->c = sum > 0xFF;
+    this->z = this->A == 0;
+    this->n = (this->A & 0b10000000) ? true : false;
     this->PC += 2;
 }
 void CPU::RMB7_ZP(){
@@ -1540,7 +1515,7 @@ void CPU::CPY_I(){
     BYTE arg = this->ImmediateVal();
     this->c = this->Y >= arg;
     this->z = this->Y == arg;
-    BYTE result = this->A - arg;
+    BYTE result = this->Y - arg;
     this->n = (result & 0b10000000) ? true : false;
     this->PC += 2;
 }
@@ -1548,7 +1523,7 @@ void CPU::CPY_ZP(){
     BYTE arg = this->ZeroPageVal();
     this->c = this->Y >= arg;
     this->z = this->Y == arg;
-    BYTE result = this->A - arg;
+    BYTE result = this->Y - arg;
     this->n = (result & 0b10000000) ? true : false;
     this->PC += 2;
 }
@@ -1603,7 +1578,7 @@ void CPU::CPY_A(){
     BYTE val = this->AbsoluteVal();
     this->c = this->Y >= val;
     this->z = this->Y == val;
-    BYTE result = this->A - val;
+    BYTE result = this->Y - val;
     this->n = (result & 0b10000000) ? true : false;
     this->PC += 3;
 }
@@ -1687,7 +1662,7 @@ void CPU::CPX_I(){
     BYTE arg = this->ImmediateVal();
     this->c = this->X >= arg;
     this->z = this->X == arg;
-    BYTE result = this->A - arg;
+    BYTE result = this->X - arg;
     this->n = (result & 0b10000000) ? true : false;
     this->PC += 2;
 }
@@ -1695,37 +1670,35 @@ void CPU::CPX_ZP(){
     BYTE arg = this->ZeroPageVal();
     this->c = this->X >= arg;
     this->z = this->X == arg;
-    BYTE result = this->A - arg;
+    BYTE result = this->X - arg;
     this->n = (result & 0b10000000) ? true : false;
     this->PC += 2;
 }
 void CPU::SBC_ZP(){
-    unsigned short val = this->ZeroPageVal();
-    if (!this->d){
-        if (!this->c){
-            val += 1;
+    BYTE val = this->ZeroPageVal();
+    signed short twos = (signed char)this->A - (signed char)val - (this->c ? 0 : 1);
+    BYTE c = this->A >= (val + (this->c ? 0 : 1));
+    signed short result = this->A - val - (this->c ? 0 : 1);
+    BYTE bin_value = result;
+    this->z = bin_value == 0;
+    this->n = (bin_value & 0b10000000) ? true : false;
+    if (this->d){
+        signed short lowresult = (this->A & 0x0F) - (val & 0x0F) - (this->c ? 0 : 1);
+        if (lowresult < 0){
+            lowresult = ((lowresult - 6) & 0x0F) - 16;
         }
-        bool isNegative = this->A < val;
-        this->c = this->A >= val;
-        this->A -= val;
-        this->n = (this->A & 0b10000000) ? true : false;
-        this->z = this->A == 0;
-        this->v = isNegative != this->n;
+        result = (this->A & 0xF0) - (val & 0xF0) + lowresult;
+        if (result < 0){
+            result = result - 0x60;
+        }
+        this->A = result;
     }
     else {
-        val = BCDToNumber(val);
-        this->A = BCDToNumber(this->A);
-        if (!this->c){
-            val += 1;
-        }
-        bool isNegative = this->A < val;
-        this->c = this->A >= val;
-        this->A -= val;
-        this->A = NumberToBCD(this->A);
-        this->n = this->A >= 50;
-        this->z = this->A == 0;
-        this->v = isNegative != this->n;
+        this->A = bin_value;
     }
+
+    this->v = twos < -128 || twos > 127;
+    this->c = c;
     this->PC += 2;
 }
 void CPU::INC_ZP(){
@@ -1753,31 +1726,29 @@ void CPU::INX(){
 }
 void CPU::SBC_I(){
     BYTE val = this->ImmediateVal();
-    if (!this->d){
-        if (!this->c){
-            val += 1;
+    signed short twos = (signed char)this->A - (signed char)val - (this->c ? 0 : 1);
+    BYTE c = this->A >= (val + (this->c ? 0 : 1));
+    signed short result = this->A - val - (this->c ? 0 : 1);
+    BYTE bin_value = result;
+    this->z = bin_value == 0;
+    this->n = (bin_value & 0b10000000) ? true : false;
+    if (this->d){
+        signed short lowresult = (this->A & 0x0F) - (val & 0x0F) - (this->c ? 0 : 1);
+        if (lowresult < 0){
+            lowresult = ((lowresult - 6) & 0x0F) - 16;
         }
-        bool isNegative = this->A < val;
-        this->c = this->A >= val;
-        this->A -= val;
-        this->n = (this->A & 0b10000000) ? true : false;
-        this->z = this->A == 0;
-        this->v = isNegative != this->n;
+        result = (this->A & 0xF0) - (val & 0xF0) + lowresult;
+        if (result < 0){
+            result = result - 0x60;
+        }
+        this->A = result;
     }
     else {
-        val = BCDToNumber(val);
-        this->A = BCDToNumber(this->A);
-        if (!this->c){
-            val += 1;
-        }
-        bool isNegative = this->A < val;
-        this->c = this->A >= val;
-        this->A -= val;
-        this->A = NumberToBCD(this->A);
-        this->n = this->A >= 50;
-        this->z = this->A == 0;
-        this->v = isNegative != this->n;
+        this->A = bin_value;
     }
+
+    this->v = twos < -128 || twos > 127;
+    this->c = c;
     this->PC += 2;
 }
 void CPU::NOP(){
@@ -1787,37 +1758,35 @@ void CPU::CPX_A(){
     BYTE val = this->AbsoluteVal();
     this->c = this->X >= val;
     this->z = this->X == val;
-    BYTE result = this->A - val;
+    BYTE result = this->X - val;
     this->n = (result & 0b10000000) ? true : false;
     this->PC += 3;
 }
 void CPU::SBC_A(){
     BYTE val = this->AbsoluteVal();
-    if (!this->d){
-        if (!this->c){
-            val += 1;
+    signed short twos = (signed char)this->A - (signed char)val - (this->c ? 0 : 1);
+    BYTE c = this->A >= (val + (this->c ? 0 : 1));
+    signed short result = this->A - val - (this->c ? 0 : 1);
+    BYTE bin_value = result;
+    this->z = bin_value == 0;
+    this->n = (bin_value & 0b10000000) ? true : false;
+    if (this->d){
+        signed short lowresult = (this->A & 0x0F) - (val & 0x0F) - (this->c ? 0 : 1);
+        if (lowresult < 0){
+            lowresult = ((lowresult - 6) & 0x0F) - 16;
         }
-        bool isNegative = this->A < val;
-        this->c = this->A >= val;
-        this->A -= val;
-        this->n = (this->A & 0b10000000) ? true : false;
-        this->z = this->A == 0;
-        this->v = isNegative != this->n;
+        result = (this->A & 0xF0) - (val & 0xF0) + lowresult;
+        if (result < 0){
+            result = result - 0x60;
+        }
+        this->A = result;
     }
     else {
-        val = BCDToNumber(val);
-        this->A = BCDToNumber(this->A);
-        if (!this->c){
-            val += 1;
-        }
-        bool isNegative = this->A < val;
-        this->c = this->A >= val;
-        this->A -= val;
-        this->A = NumberToBCD(this->A);
-        this->n = this->A >= 50;
-        this->z = this->A == 0;
-        this->v = isNegative != this->n;
+        this->A = bin_value;
     }
+
+    this->v = twos < -128 || twos > 127;
+    this->c = c;
     this->PC += 3;
 }
 void CPU::INC_A(){
@@ -1849,31 +1818,29 @@ void CPU::BEQ(){
 }
 void CPU::SBC_IZP(){
     BYTE val = this->IndirectZeroPageVal();
-    if (!this->d){
-        if (!this->c){
-            val += 1;
+    signed short twos = (signed char)this->A - (signed char)val - (this->c ? 0 : 1);
+    BYTE c = this->A >= (val + (this->c ? 0 : 1));
+    signed short result = this->A - val - (this->c ? 0 : 1);
+    BYTE bin_value = result;
+    this->z = bin_value == 0;
+    this->n = (bin_value & 0b10000000) ? true : false;
+    if (this->d){
+        signed short lowresult = (this->A & 0x0F) - (val & 0x0F) - (this->c ? 0 : 1);
+        if (lowresult < 0){
+            lowresult = ((lowresult - 6) & 0x0F) - 16;
         }
-        bool isNegative = this->A < val;
-        this->c = this->A >= val;
-        this->A -= val;
-        this->n = (this->A & 0b10000000) ? true : false;
-        this->z = this->A == 0;
-        this->v = isNegative != this->n;
+        result = (this->A & 0xF0) - (val & 0xF0) + lowresult;
+        if (result < 0){
+            result = result - 0x60;
+        }
+        this->A = result;
     }
     else {
-        val = BCDToNumber(val);
-        this->A = BCDToNumber(this->A);
-        if (!this->c){
-            val += 1;
-        }
-        bool isNegative = this->A < val;
-        this->c = this->A >= val;
-        this->A -= val;
-        this->A = NumberToBCD(this->A);
-        this->n = this->A >= 50;
-        this->z = this->A == 0;
-        this->v = isNegative != this->n;
+        this->A = bin_value;
     }
+
+    this->v = twos < -128 || twos > 127;
+    this->c = c;
     this->PC += 2;
 }
 void CPU::INC_ZPX(){

@@ -40,11 +40,12 @@ bool Display::Update(){
 
 void Display::DrawRectangle(BYTE r, BYTE g, BYTE b, unsigned int x, unsigned int y, unsigned int rectWidth, unsigned int rectHeight){
     SDL_SetRenderDrawColor(this->renderer, r, g, b, 255);
-    for (unsigned int i=x; i<(x+rectWidth); i++){
-        for (unsigned int j=y; j<(y+rectHeight); j++){
-            SDL_RenderDrawPoint(this->renderer, i, j);
-        }
-    }
+    SDL_Rect rect;
+    rect.x = x;
+    rect.y = y;
+    rect.w = rectWidth;
+    rect.h = rectHeight;
+    SDL_RenderFillRect(this->renderer, &rect);
 }
 
 void Display::SendCommand(BYTE by){

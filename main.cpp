@@ -36,9 +36,10 @@ int main(int argc, char *argv[])
         //cpu->PrintState();
 
 
-        //if (((cpu->GetPRR()&0xFFFF) == 0x203) && cpu->PC == 0x63FE ){
+        /*if (((cpu->GetPRR()&0xFFFF) == 0x207) && cpu->PC == 0x63FD ){
             //stepping = true;
-        //}
+            DumpData(cpu);
+        }*/
 
 
         if (stepping && !cpu->interrupted){
