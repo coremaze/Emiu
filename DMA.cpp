@@ -121,7 +121,6 @@ void DMA::Execute(){
 
     //printf("PC:%04X %02X DRR:%04X\n", this->cpu->PC, dest_mode, this->cpu->GetDRR());
 
-
     unsigned short old_sourcePtr = this->sourcePtr;
     unsigned short old_destPtr = this->destPtr;
 
@@ -152,22 +151,34 @@ void DMA::Execute(){
 
         //Pointer modes
         if (source_mode == 0b00){ //Continue mode
+            if (this->sourcePtr == 0xFFFF){
+                this->sourceBank++;
+            }
             this->sourcePtr++;
-            this->sourcePtr = this->sourcePtr;// | 0x8000;
+            this->sourcePtr = this->sourcePtr | 0x8000;
         }
         else if (source_mode == 0b01) { //Reload mode
+            if (this->sourcePtr == 0xFFFF){
+                this->sourceBank++;
+            }
             this->sourcePtr++;
-            this->sourcePtr = this->sourcePtr;// | 0x8000;
+            this->sourcePtr = this->sourcePtr | 0x8000;
         }
         else { //Fixed mode
 
         }
 
         if (dest_mode == 0b00){ //Continue mode
+            if (this->destPtr == 0xFFFF){
+                this->destBank++;
+            }
             this->destPtr++;
             this->destPtr = this->destPtr | 0x8000;
         }
         else if (dest_mode == 0b01) { //Reload mode
+            if (this->destPtr == 0xFFFF){
+                this->destBank++;
+            }
             this->destPtr++;
             this->destPtr = this->destPtr | 0x8000;
         }

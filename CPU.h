@@ -128,6 +128,7 @@ public:
     void PHP(); //08
     void ORA_I(); //09
     void ASL_ACC(); //0A
+    void TSB_A(); //0C
     void ORA_A(); //0D
     void ASL_A(); //0E
     void BBR0(); //0F
