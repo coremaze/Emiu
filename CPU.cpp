@@ -623,6 +623,29 @@ void CPU::ImportFlags(unsigned char flags){
     this->c = (flags & 0b00000001) ? true : false;
 }
 
+void CPU::StartWaitTimer(){
+    this->last_wait_time = timeGetTime();
+}
+
+unsigned int CPU::Wait(unsigned int loop_size){
+    unsigned int cpu_speed = 6000000; //6MHz
+    unsigned int average_cycles_per_instruction = 4;
+
+    unsigned int milliseconds_per_loop = (average_cycles_per_instruction*loop_size*1000)/cpu_speed;
+    unsigned int end_time = timeGetTime();
+    unsigned int duration = end_time-this->last_wait_time;
+    if (duration < milliseconds_per_loop){
+        Sleep(milliseconds_per_loop - duration);
+        if ((milliseconds_per_loop - duration) > 3){
+            loop_size -= 1; //fine tune loop size in order to maximize responsiveness
+        }
+    }
+    else {
+        loop_size += 1; //fine tune loop size in order to maximize responsiveness
+    }
+    return loop_size;
+}
+
 bool CPU::Step(){
     this->controller->Update();
     BYTE opcode = this->mmu->ReadByte(this->PC);
@@ -852,7 +875,7 @@ void CPU::ROL_A(){
     this->c = (this->A & 0b10000000) ? true : false;
     val <<= 1;
     val += (old_carry) ? 1 : 0;
-    this->z = val== 0;
+    this->z = val == 0;
     this->n = (val & 0b10000000) ? true : false;
     unsigned short ptr = this->AbsolutePtr();
     this->mmu->StoreByte(ptr, val);

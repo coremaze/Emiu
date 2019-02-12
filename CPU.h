@@ -46,7 +46,7 @@ public:
     BYTE RAM[0x1000000];
     BYTE videoRegisters[0x2];
     BYTE OTP[OTP_SIZE];
-    //BYTE Flash[FLASH_SIZE];
+
     Flash* flash;
 
     Controller* controller;
@@ -57,6 +57,8 @@ public:
     DMA* dma;
 
     BTInterrupt* btInterrupt;
+
+    unsigned int last_wait_time;
 
     CPU(char* OTPFile, char* flashFile);
     void PrintState();
@@ -120,6 +122,9 @@ public:
     BYTE ExportFlags();
     void ImportFlags(BYTE flags);
 
+
+    void StartWaitTimer();
+    unsigned int Wait(unsigned int loop_size);
     bool Step();
 
     void ORA_ZP(); //05

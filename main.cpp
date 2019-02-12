@@ -32,7 +32,25 @@ int main(int argc, char *argv[])
     bool stepping = false;
 
     int i = 0;
-    while (!cpu->Step() && !cpu->display->Update()){
+    bool stop = false;
+    unsigned int loop_size = 1000;
+
+    while (!cpu->display->Update() && !stop){
+        cpu->StartWaitTimer();
+        for (int i = 0; i<loop_size; i++){
+            //cpu->PrintState();
+            if (cpu->Step()){
+                stop = true;
+                break;
+            }
+        }
+        loop_size = cpu->Wait(loop_size);
+
+    }
+
+
+
+    //while (!cpu->Step() && !cpu->display->Update()){
         //cpu->PrintState();
 
 
@@ -42,13 +60,13 @@ int main(int argc, char *argv[])
         }*/
 
 
-        if (stepping && !cpu->interrupted){
-            cpu->PrintState();
-            std::cin.get();
+        //if (stepping && !cpu->interrupted){
+            //cpu->PrintState();
+            //std::cin.get();
             //stepping = false;
-        }
+        //}
 
-    }
+   // }
 
     printf("End state: ");
     cpu->PrintState();
