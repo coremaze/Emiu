@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1550001167 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\main.cpp
+1550115556 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\main.cpp
 	<windows.h>
 	"main.h"
 	"Display.h"
@@ -13,7 +13,7 @@
 	<GL/gl.h>
 	<GL/glu.h>
 
-1549945370 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\display.cpp
+1550009202 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\display.cpp
 	"Display.h"
 
 1549290239 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\display.cpp
@@ -362,7 +362,7 @@
 	"begin_code.h"
 	"close_code.h"
 
-1550000883 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\cpu.cpp
+1550115326 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\cpu.cpp
 	<windows.h>
 	"CPU.h"
 	"Display.h"
@@ -382,18 +382,18 @@
 
 1549303429 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\main.h
 
-1550001439 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\cpu.h
+1550007828 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\cpu.h
 
 1549749972 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\mmu.h
 
-1549918684 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\mmu.cpp
+1550115918 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\mmu.cpp
 	"MMU.h"
 	"CPU.h"
 	"DMA.h"
 	<iostream>
 	"Flash.h"
 
-1549940697 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\dma.cpp
+1550024111 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\dma.cpp
 	"CPU.h"
 	"DMA.h"
 	"MMU.h"

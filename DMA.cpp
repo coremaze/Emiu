@@ -124,7 +124,7 @@ void DMA::Execute(){
     unsigned short old_sourcePtr = this->sourcePtr;
     unsigned short old_destPtr = this->destPtr;
 
-    for (int i = 0; i<(number+1); i++){
+    for (int i = 0; i<(this->number+1); i++){
         this->cpu->mmu->StoreShort(DRR, this->sourceBank);
 
         BYTE source_byte = this->cpu->mmu->ReadByte(this->sourcePtr);

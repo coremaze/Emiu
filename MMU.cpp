@@ -108,7 +108,6 @@ void MMU::StoreByte(unsigned short address, BYTE by){
 }
 
 BYTE MMU::ReadByte(unsigned short address){
-
     if ((address >= REGISTERS_START) && (address < (REGISTERS_START + REGISTERS_LENGTH))){ //Register?
         if (address == DPTR){
             return this->cpu->dma->GetDPTRL();

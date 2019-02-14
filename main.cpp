@@ -31,13 +31,21 @@ int main(int argc, char *argv[])
 
     bool stepping = false;
 
-    int i = 0;
     bool stop = false;
     unsigned int loop_size = 1000;
 
     while (!cpu->display->Update() && !stop){
         cpu->StartWaitTimer();
         for (int i = 0; i<loop_size; i++){
+            //if (((cpu->GetPRR()==0x207) && cpu->PC==0x6718) || stepping) {
+                //cpu->PrintState();
+                //printf("%02X\n", cpu->mmu->ReadByte(0x805));
+                //stepping = true;
+                //std::cin.get();
+                //cpu->SEI();
+                //DumpData(cpu);
+                //cpu->mmu->StoreByte(0x884, 0);
+            //}
             //cpu->PrintState();
             if (cpu->Step()){
                 stop = true;

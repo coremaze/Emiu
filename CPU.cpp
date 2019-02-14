@@ -231,7 +231,7 @@ opcode_func OPCODES[] = {
         (opcode_func)nullptr, //DB
         (opcode_func)nullptr, //DC
         CPU::CMP_AX, //DD
-        (opcode_func)nullptr, //DE
+        CPU::DEC_AX, //DE
         CPU::BBS5, //DF
         CPU::CPX_I, //E0
         (opcode_func)nullptr, //E1
@@ -573,22 +573,22 @@ unsigned short CPU::AbsoluteIndexIndirectVal(){
 
 void CPU::Push(BYTE by){
     this->mmu->StoreByte(STACK_START + this->S, by);
-    this->S++;
+    this->S--;
 }
 void CPU::PushShort(unsigned short sh){
     BYTE low = (BYTE)(sh & 0x00FF);
     BYTE high = (BYTE)((sh & 0xFF00) >> 8);
-    this->Push(low);
     this->Push(high);
+    this->Push(low);
 }
 
 BYTE CPU::Pop(){
-    this->S--;
+    this->S++;
     return this->mmu->ReadByte(STACK_START + this->S);
 }
 unsigned short CPU::PopShort(){
-    BYTE high = this->Pop();
     BYTE low = this->Pop();
+    BYTE high = this->Pop();
     unsigned short result = (unsigned short)low;
     result = result | ( ((unsigned short)high) << 8);
     return result;
@@ -1002,7 +1002,7 @@ void CPU::EOR_A(){
 void CPU::LSR_A(){
     BYTE val = this->AbsoluteVal();
     this->c = (0b00000001 & val) ? true : false;
-    val >>= 2;
+    val >>= 1;
     this->z = val == 0;
     this->n = (val & 0b10000000) ? true : false;
     unsigned short ptr = this->AbsolutePtr();
@@ -1062,11 +1062,12 @@ void CPU::ADC_ZP(){
             sum += 0x60;
         }
     }
-    this->v = (((this->A ^ sum) & (add ^ this->A) & 0x80) == 0x80) ? true : false;
+    bool c_6 = (((this->A&0x7F) + (add&0x7F) + (this->c ? 1 : 0)) & 0b10000000) ? true : false;
     this->A = (BYTE)sum;
     this->c = sum > 0xFF;
     this->z = this->A == 0;
     this->n = (this->A & 0b10000000) ? true : false;
+    this->v = (c_6 ^ this->c) ? true : false;
     this->PC += 2;
 }
 void CPU::RMB6_ZP(){
@@ -1093,11 +1094,12 @@ void CPU::ADC_I(){
             sum += 0x60;
         }
     }
-    this->v = (((this->A ^ sum) & (add ^ this->A) & 0x80) == 0x80) ? true : false;
+    bool c_6 = (((this->A&0x7F) + (add&0x7F) + (this->c ? 1 : 0)) & 0b10000000) ? true : false;
     this->A = (BYTE)sum;
     this->c = sum > 0xFF;
     this->z = this->A == 0;
     this->n = (this->A & 0b10000000) ? true : false;
+    this->v = (c_6 ^ this->c) ? true : false;
     this->PC += 2;
 }
 void CPU::ROR_ACC(){
@@ -1126,11 +1128,12 @@ void CPU::ADC_A(){
             sum += 0x60;
         }
     }
-    this->v = (((this->A ^ sum) & (add ^ this->A) & 0x80) == 0x80) ? true : false;
+    bool c_6 = (((this->A&0x7F) + (add&0x7F) + (this->c ? 1 : 0)) & 0b10000000) ? true : false;
     this->A = (BYTE)sum;
     this->c = sum > 0xFF;
     this->z = this->A == 0;
     this->n = (this->A & 0b10000000) ? true : false;
+    this->v = (c_6 ^ this->c) ? true : false;
     this->PC += 3;
 }
 void CPU::ROR_A(){
@@ -1167,11 +1170,12 @@ void CPU::ADC_INDIRECT_INDEXED(){
             sum += 0x60;
         }
     }
-    this->v = (((this->A ^ sum) & (add ^ this->A) & 0x80) == 0x80) ? true : false;
+    bool c_6 = (((this->A&0x7F) + (add&0x7F) + (this->c ? 1 : 0)) & 0b10000000) ? true : false;
     this->A = (BYTE)sum;
     this->c = sum > 0xFF;
     this->z = this->A == 0;
     this->n = (this->A & 0b10000000) ? true : false;
+    this->v = (c_6 ^ this->c) ? true : false;
     this->PC += 2;
 }
 void CPU::ADC_IZP(){
@@ -1185,11 +1189,12 @@ void CPU::ADC_IZP(){
             sum += 0x60;
         }
     }
-    this->v = (((this->A ^ sum) & (add ^ this->A) & 0x80) == 0x80) ? true : false;
+    bool c_6 = (((this->A&0x7F) + (add&0x7F) + (this->c ? 1 : 0)) & 0b10000000) ? true : false;
     this->A = (BYTE)sum;
     this->c = sum > 0xFF;
     this->z = this->A == 0;
     this->n = (this->A & 0b10000000) ? true : false;
+    this->v = (c_6 ^ this->c) ? true : false;
     this->PC += 2;
 }
 void CPU::RMB7_ZP(){
@@ -1670,6 +1675,15 @@ void CPU::CMP_AX(){
     this->z = this->A == val;
     BYTE result = this->A - val;
     this->n = (result & 0b10000000) ? true : false;
+    this->PC += 3;
+}
+void CPU::DEC_AX(){
+    BYTE val = this->AbsoluteXVal();
+    val -= 1;
+    this->z = val == 0;
+    this->n = (val & 0b10000000) ? true : false;
+    unsigned short ptr = this->AbsoluteXPtr();
+    this->mmu->StoreByte(ptr, val);
     this->PC += 3;
 }
 void CPU::BBS5(){

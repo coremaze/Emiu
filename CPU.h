@@ -38,7 +38,7 @@ public:
     BYTE A; //Accumulator
     BYTE X; //X
     BYTE Y; //Y
-    unsigned short S; //Stack
+    BYTE S; //Stack
     unsigned short PC; //Program Counter
 
     //Memory
@@ -262,6 +262,7 @@ public:
     void CLD(); //D8
     void PHX(); //DA
     void CMP_AX(); //DD
+    void DEC_AX(); //DE
     void BBS5(); //DF
     void CPX_I(); //E0
     void CPX_ZP(); //E4
