@@ -1,6 +1,6 @@
-# Miuchiz-Emulator
+# Emiu
 
-prototype
+Emiu is an emulator for the Miuchiz handheld console.
 
 Microprocessor documentation: http://meuk.spritesserver.nl/st2205um.pdf
 
