@@ -1,6 +1,7 @@
 #include "Controller.h"
 #include "CPU.h"
 #include "MMU.h"
+#include "Interrupt.h"
 
 #define UP                   0b1111111111111110
 #define DOWN                 0b1111111111111101
@@ -66,7 +67,7 @@ void Controller::Update(){
     }
 
     if (this->controls != keys){
-        ////PT Interrupt
+        this->cpu->ptInterrupt->Trigger();
     }
 
     this->controls = keys;

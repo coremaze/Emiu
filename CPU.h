@@ -6,6 +6,7 @@ class DMA;
 class Controller;
 
 class BTInterrupt;
+class PTInterrupt;
 
 class Flash;
 
@@ -21,9 +22,15 @@ class Flash;
 #define OTP_SIZE 0x4000
 #define FLASH_SIZE 0x200000
 
+#define CPU_NO_ERROR 0
+#define CPU_OTP_NOT_LOADED 1
+#define CPU_FLASH_NOT_LOADED 2
+
+
 class CPU {
 public:
     Display* display;
+    BYTE error;
 
     //Flags
     bool c; //Carry
@@ -57,6 +64,7 @@ public:
     DMA* dma;
 
     BTInterrupt* btInterrupt;
+    PTInterrupt* ptInterrupt;
 
     unsigned int last_wait_time;
 

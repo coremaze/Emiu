@@ -24,13 +24,20 @@ void DumpData(CPU* cpu){
 
 int main(int argc, char *argv[])
 {
-    CPU* cpu = new CPU("OTP.dat", "Spike 1.09.03.dat");
+    CPU* cpu = new CPU("OTP.dat", "Flash.dat");
+
+    if (cpu->error){
+        printf("Emiu was not able to start.\n");
+        Sleep(1000);
+        return 1;
+    }
+
+    cpu->display->Splash();
 
     cpu->display->Update();
     Sleep(1000); //give time to hold keys if desired
 
     bool stepping = false;
-
     bool stop = false;
     unsigned int loop_size = 1000;
 
@@ -42,7 +49,6 @@ int main(int argc, char *argv[])
                 //printf("%02X\n", cpu->mmu->ReadByte(0x805));
                 //stepping = true;
                 //std::cin.get();
-                //cpu->SEI();
                 //DumpData(cpu);
                 //cpu->mmu->StoreByte(0x884, 0);
             //}
@@ -53,7 +59,6 @@ int main(int argc, char *argv[])
             }
         }
         loop_size = cpu->Wait(loop_size);
-
     }
 
 

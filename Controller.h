@@ -3,6 +3,7 @@
 #include "SDL2/include/SDL2/SDL.h"
 class CPU;
 class MMU;
+class PTInterrupt;
 
 class Controller{
 public:

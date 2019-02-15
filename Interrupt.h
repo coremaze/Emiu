@@ -5,7 +5,7 @@
 #define BTREQ 0x2B
 #define BTC 0x2C
 #define IREQL 0x3C
-#define IRENAL 0x3E
+#define IENAL 0x3E
 
 class CPU;
 
@@ -18,5 +18,15 @@ public:
     BTInterrupt(CPU* cpu);
     bool Update();
 
+};
+
+class PTInterrupt {
+public:
+    CPU* cpu;
+    bool triggered;
+
+    PTInterrupt(CPU* cpu);
+    void Trigger();
+    bool Update();
 };
 #endif // INTERRUPT_H

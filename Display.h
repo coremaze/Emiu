@@ -38,6 +38,7 @@ class Display {
     void SendData(BYTE by);
     void AddPixelData(BYTE by);
     void DrawCurrentPixel();
+    void Splash();
 };
 
 

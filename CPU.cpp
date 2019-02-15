@@ -277,6 +277,8 @@ BYTE NumberToBCD(BYTE x){
 
 
 CPU::CPU(char* OTPFile, char* flashFile){
+    this->error = CPU_NO_ERROR;
+
     FILE* file;
 
     //Load OTP
@@ -287,6 +289,7 @@ CPU::CPU(char* OTPFile, char* flashFile){
         fseek(file, 0, SEEK_SET);
         if (fsize != OTP_SIZE) {
             printf("Error: OTP file is incorrect size.\n");
+            this->error = CPU_OTP_NOT_LOADED;
             return;
         }
         fread(this->OTP, fsize, 1, file);
@@ -294,6 +297,7 @@ CPU::CPU(char* OTPFile, char* flashFile){
     }
     else {
         printf("Error: OTP file could not be read.\n");
+        this->error = CPU_OTP_NOT_LOADED;
         return;
     }
 
@@ -307,6 +311,7 @@ CPU::CPU(char* OTPFile, char* flashFile){
         fseek(file, 0, SEEK_SET);
         if (fsize != FLASH_SIZE) {
             printf("Error: Flash file is incorrect size.\n");
+            this->error = CPU_FLASH_NOT_LOADED;
             return;
         }
         fread(this->flash->memory, fsize, 1, file);
@@ -314,6 +319,7 @@ CPU::CPU(char* OTPFile, char* flashFile){
     }
     else {
         printf("Error: Flash file could not be read.\n");
+        this->error = CPU_FLASH_NOT_LOADED;
         return;
     }
 
@@ -342,7 +348,7 @@ CPU::CPU(char* OTPFile, char* flashFile){
     this->dma = new DMA(this);
 
     this->btInterrupt = new BTInterrupt(this);
-    ////PT interrupt
+    this->ptInterrupt = new PTInterrupt(this);
 
     this->Reset();
 
@@ -659,14 +665,20 @@ bool CPU::Step(){
     (this->*func)();
 
     bool bt_interrupt_requested = this->btInterrupt->Update();
+    bool pt_interrupt_requested = this->ptInterrupt->Update();
     if (!this->i){
-        if (!this->interrupted && bt_interrupt_requested){
+        if (this->interrupted) {}
+        else if (pt_interrupt_requested){
             this->BeginInterrupt();
-            //this->PrintState();
+            this->PushShort(this->PC);
+            this->Push(this->ExportFlags());
+            this->PC = this->GetPTVector();
+        }
+        else if (bt_interrupt_requested){
+            this->BeginInterrupt();
             this->PushShort(this->PC);
             this->Push(this->ExportFlags());
             this->PC = this->GetBTVector();
-            //printf("BT Vector: %04X\n", this->GetBTVector());
         }
     }
     return false;
@@ -1475,7 +1487,6 @@ void CPU::LDA_INDIRECT_INDEXED(){
 }
 void CPU::LDA_IZP(){
     BYTE val = this->IndirectZeroPageVal();
-    unsigned short ptr = this->IndirectZeroPagePtr();
     this->A = val;
     this->z = this->A == 0;
     this->n = (this->A & 0b10000000) ? true : false;

@@ -1,6 +1,7 @@
 #include "Interrupt.h"
 #include <windows.h>
 #include "CPU.h"
+#include <iostream>
 
 
 BTInterrupt::BTInterrupt(CPU* cpu){
@@ -55,5 +56,35 @@ bool BTInterrupt::Update(){
     if (BTREQ_data){
         return true;
     }
+    return false;
+}
+
+PTInterrupt::PTInterrupt(CPU* cpu){
+    this->cpu = cpu;
+}
+void PTInterrupt::Trigger(){
+    this->triggered = true;
+}
+bool PTInterrupt::Update(){
+    BYTE IREQL_data = this->cpu->memRegisters[IREQL];
+    if (this->triggered){
+        IREQL_data |= 0b00100000;
+    }
+    else {
+        IREQL_data &= 0b11011111;
+    }
+
+    if (this->triggered){
+        this->triggered = false;
+        BYTE IENAL_data = this->cpu->memRegisters[IENAL];
+        BYTE IEPT = IENAL_data & 0b00100000;
+        if (IEPT){
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
     return false;
 }
