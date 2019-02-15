@@ -1,11 +1,12 @@
 # depslib dependency file v1.0
-1550190711 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\main.cpp
+1550265177 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\main.cpp
 	<windows.h>
 	"main.h"
 	"Display.h"
 	"CPU.h"
 	"MMU.h"
 	"DMA.h"
+	"Timer.h"
 	<fstream>
 
 1548787852 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\gl\glut.h
@@ -13,7 +14,7 @@
 	<GL/gl.h>
 	<GL/glu.h>
 
-1550191465 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\display.cpp
+1550265470 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\display.cpp
 	"Display.h"
 
 1549290239 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\display.cpp
@@ -362,7 +363,7 @@
 	"begin_code.h"
 	"close_code.h"
 
-1550191929 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\cpu.cpp
+1550265980 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\cpu.cpp
 	<windows.h>
 	"CPU.h"
 	"Display.h"
@@ -371,6 +372,7 @@
 	"Controller.h"
 	"Interrupt.h"
 	"Flash.h"
+	"Timer.h"
 
 1549253443 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\cpu.cpp
 	"Display.cpp"
@@ -380,13 +382,13 @@
 	<windows.h>
 	<iostream>
 
-1549303429 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\main.h
+1550262173 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\main.h
 
-1550191929 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\cpu.h
+1550265980 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\cpu.h
 
 1549749972 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\mmu.h
 
-1550115918 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\mmu.cpp
+1550261166 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\mmu.cpp
 	"MMU.h"
 	"CPU.h"
 	"DMA.h"
@@ -410,17 +412,24 @@
 1550184445 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\controller.h
 	"SDL2/include/SDL2/SDL.h"
 
-1550184198 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\interrupt.h
+1550261030 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\interrupt.h
 
-1550185410 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\interrupt.cpp
+1550262596 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\interrupt.cpp
 	"Interrupt.h"
 	<windows.h>
 	"CPU.h"
 	<iostream>
+	"Timer.h"
 
 1549679905 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\flash.h
 
 1549680017 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\flash.cpp
 	"Flash.h"
 	<iostream>
+
+1550261145 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\timer.h
+	<windows.h>
+
+1550261838 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\timer.cpp
+	"Timer.h"
 

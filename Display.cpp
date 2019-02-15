@@ -18,7 +18,7 @@ Display::Display(){
 
 
     SDL_Init(SDL_INIT_EVERYTHING);
-    this->window = SDL_CreateWindow("Miuchiz Emulator", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, this->width*this->scale, this->height*this->scale, SDL_WINDOW_SHOWN);
+    this->window = SDL_CreateWindow("Emiu | Miuchiz Emulator", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, this->width*this->scale, this->height*this->scale, SDL_WINDOW_SHOWN);
     this->renderer = SDL_CreateRenderer(window, -1, 0);
     SDL_SetRenderDrawColor(this->renderer, 0, 0, 0, 0);
     SDL_RenderClear(this->renderer);

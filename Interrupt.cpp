@@ -2,18 +2,22 @@
 #include <windows.h>
 #include "CPU.h"
 #include <iostream>
+#include "Timer.h"
 
 
 BTInterrupt::BTInterrupt(CPU* cpu){
     this->cpu = cpu;
     this->clock = 0;
-    this->last_time = timeGetTime();
+    this->timer = new Timer();
+    this->timer->Start();
 }
 bool BTInterrupt::Update(){
-    unsigned int this_time = timeGetTime();
-    unsigned int duration = (this_time - this->last_time);
-    this->last_time = this_time;
-    unsigned int cycles = (duration * 8192) / 1000; //The number of crystal cycles that should have elapsed: 8192Hz
+    this->timer->Stop();
+    float duration = this->timer->Duration();
+    unsigned int cycles = (duration* 8192.0)/1000.0 ; //The number of crystal cycles that should have elapsed: 8192Hz
+    if (!cycles) return false;
+    this->timer->Advance();
+    //printf("%d\n", (unsigned int)cycles);
     unsigned long long int old_clock = this->clock;
     this->clock += cycles;
 

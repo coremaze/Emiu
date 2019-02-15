@@ -10,6 +10,8 @@ class PTInterrupt;
 
 class Flash;
 
+class Timer;
+
 
 
 #define STACK_START 0x100
@@ -66,7 +68,7 @@ public:
     BTInterrupt* btInterrupt;
     PTInterrupt* ptInterrupt;
 
-    unsigned int last_wait_time;
+    Timer* wait_timer;
 
     CPU(char* OTPFile, char* flashFile);
     void PrintState();
@@ -132,7 +134,7 @@ public:
 
 
     void StartWaitTimer();
-    unsigned int Wait(unsigned int loop_size);
+    void Wait(unsigned int loop_size);
     bool Step();
 
     void ORA_ZP(); //05
@@ -169,6 +171,7 @@ public:
     void AND_AY(); //39
     void DEC_ACC(); //3A
     void AND_AX(); //3D
+    void ROL_AX(); //3E
     void BBR3(); //3F
     void RTI(); //40
     void EOR_ZP(); //45
@@ -188,6 +191,7 @@ public:
     void RTS(); //60
     void STZ_ZP(); //64
     void ADC_ZP(); //65
+    void ROR_ZP(); //66
     void RMB6_ZP(); //67
     void PLA(); //68
     void ADC_I(); //69
@@ -202,6 +206,7 @@ public:
     void SEI(); //78
     void PLY(); //7A
     void JMP_ABSOLUTE_INDEXED_INDIRECT(); //7C
+    void ADC_AX(); //7D
     void BBR7(); //7F
     void BRA(); //80
     void STY_ZP(); //84
@@ -268,6 +273,7 @@ public:
     void DEC_ZPX(); //D6
     void SMB5_ZP(); //D7
     void CLD(); //D8
+    void CMP_AY(); //D9
     void PHX(); //DA
     void CMP_AX(); //DD
     void DEC_AX(); //DE
@@ -290,6 +296,7 @@ public:
     void SMB7_ZP(); //F7
     void SED(); //F8
     void PLX(); //FA
+    void SBC_AX(); //FD
     void INC_AX(); //FE
     void BBS7(); //FF
 

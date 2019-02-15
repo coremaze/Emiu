@@ -7,13 +7,14 @@
 #define IREQL 0x3C
 #define IENAL 0x3E
 
+class Timer;
 class CPU;
 
 class BTInterrupt {
 public:
     CPU* cpu;
     unsigned long long int clock;
-    unsigned int last_time;
+    Timer* timer;
 
     BTInterrupt(CPU* cpu);
     bool Update();

@@ -4,6 +4,7 @@
 #include "CPU.h"
 #include "MMU.h"
 #include "DMA.h"
+#include "Timer.h"
 #include <fstream>
 
 void HexDump(unsigned char* bin, unsigned int start, unsigned int end) {
@@ -24,7 +25,7 @@ void DumpData(CPU* cpu){
 
 int main(int argc, char *argv[])
 {
-    CPU* cpu = new CPU("OTP.dat", "Flash.dat");
+    CPU* cpu = new CPU("OTP.dat", "Spike 1.09.03.dat");
 
     if (cpu->error){
         printf("Emiu was not able to start.\n");
@@ -39,7 +40,7 @@ int main(int argc, char *argv[])
 
     bool stepping = false;
     bool stop = false;
-    unsigned int loop_size = 1000;
+    unsigned int loop_size = 100;
 
     while (!cpu->display->Update() && !stop){
         cpu->StartWaitTimer();
@@ -57,8 +58,10 @@ int main(int argc, char *argv[])
                 stop = true;
                 break;
             }
+
+
         }
-        loop_size = cpu->Wait(loop_size);
+        cpu->Wait(loop_size);
     }
 
 

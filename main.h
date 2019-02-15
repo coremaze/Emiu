@@ -4,6 +4,7 @@
 class Display;
 class CPU;
 class MMU;
+class Timer;
 
 
 

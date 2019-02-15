@@ -6,6 +6,7 @@
 #include "Controller.h"
 #include "Interrupt.h"
 #include "Flash.h"
+#include "Timer.h"
 
 typedef void(CPU::*opcode_func)();
 opcode_func OPCODES[] = {
@@ -71,7 +72,7 @@ opcode_func OPCODES[] = {
         (opcode_func)nullptr, //3B
         (opcode_func)nullptr, //3C
         CPU::AND_AX, //3D
-        (opcode_func)nullptr, //3E
+        CPU::ROL_AX, //3E
         CPU::BBR3, //3F
         CPU::RTI, //40
         (opcode_func)nullptr, //41
@@ -111,7 +112,7 @@ opcode_func OPCODES[] = {
         (opcode_func)nullptr, //63
         CPU::STZ_ZP, //64
         CPU::ADC_ZP, //65
-        (opcode_func)nullptr, //66
+        CPU::ROR_ZP, //66
         CPU::RMB6_ZP, //67
         CPU::PLA, //68
         CPU::ADC_I, //69
@@ -134,7 +135,7 @@ opcode_func OPCODES[] = {
         CPU::PLY, //7A
         (opcode_func)nullptr, //7B
         CPU::JMP_ABSOLUTE_INDEXED_INDIRECT, //7C
-        (opcode_func)nullptr, //7D
+        CPU::ADC_AX, //7D
         (opcode_func)nullptr, //7E
         CPU::BBR7, //7F
         CPU::BRA, //80
@@ -226,7 +227,7 @@ opcode_func OPCODES[] = {
         CPU::DEC_ZPX, //D6
         CPU::SMB5_ZP, //D7
         CPU::CLD, //D8
-        (opcode_func)nullptr, //D9
+        CPU::CMP_AY, //D9
         CPU::PHX, //DA
         (opcode_func)nullptr, //DB
         (opcode_func)nullptr, //DC
@@ -262,18 +263,10 @@ opcode_func OPCODES[] = {
         CPU::PLX, //FA
         (opcode_func)nullptr, //FB
         (opcode_func)nullptr, //FC
-        (opcode_func)nullptr, //FD
+        CPU::SBC_AX, //FD
         CPU::INC_AX, //FE
         CPU::BBS7, //FF
 };
-
-BYTE BCDToNumber(BYTE x){
-    return (10 * (x & 0xF0) >> 4) + (x & 0x0F);
-}
-BYTE NumberToBCD(BYTE x){
-    return ((((x / 10) % 10) << 4) & 0xF0) | ((x % 10) & 0x0F);
-}
-
 
 
 CPU::CPU(char* OTPFile, char* flashFile){
@@ -354,6 +347,7 @@ CPU::CPU(char* OTPFile, char* flashFile){
 
     this->interrupted = false;
 
+    this->wait_timer = new Timer();
 
 }
 
@@ -630,26 +624,20 @@ void CPU::ImportFlags(unsigned char flags){
 }
 
 void CPU::StartWaitTimer(){
-    this->last_wait_time = timeGetTime();
+    this->wait_timer->Start();
 }
 
-unsigned int CPU::Wait(unsigned int loop_size){
+void CPU::Wait(unsigned int loop_size){
     unsigned int cpu_speed = 6000000; //6MHz
-    unsigned int average_cycles_per_instruction = 4;
-
-    unsigned int milliseconds_per_loop = (average_cycles_per_instruction*loop_size*1000)/cpu_speed;
-    unsigned int end_time = timeGetTime();
-    unsigned int duration = end_time-this->last_wait_time;
-    if (duration < milliseconds_per_loop){
-        Sleep(milliseconds_per_loop - duration);
-        if ((milliseconds_per_loop - duration) > 3){
-            loop_size -= 1; //fine tune loop size in order to maximize responsiveness
+    float average_cycles_per_instruction = 2.65;
+    float milliseconds_per_loop = (average_cycles_per_instruction*1000.0*(float)loop_size)/(float)cpu_speed;
+    while (true){
+        this->wait_timer->Stop();
+        if (this->wait_timer->Duration() >= (float)milliseconds_per_loop){
+            this->wait_timer->Advance();
+            break;
         }
     }
-    else {
-        loop_size += 1; //fine tune loop size in order to maximize responsiveness
-    }
-    return loop_size;
 }
 
 bool CPU::Step(){
@@ -942,6 +930,18 @@ void CPU::AND_AX(){
     this->n = (this->A & 0b10000000) ? true : false;
     this->PC += 3;
 }
+void CPU::ROL_AX(){
+    BYTE val = this->AbsoluteXVal();
+    bool old_carry = this->c;
+    this->c = (this->A & 0b10000000) ? true : false;
+    val <<= 1;
+    val += (old_carry) ? 1 : 0;
+    this->z = val == 0;
+    this->n = (val & 0b10000000) ? true : false;
+    unsigned short ptr = this->AbsoluteXPtr();
+    this->mmu->StoreByte(ptr, val);
+    this->PC += 3;
+}
 void CPU::BBR3(){
     BYTE val = this->ZeroPageVal();
     this->PC += 1;
@@ -1080,6 +1080,20 @@ void CPU::ADC_ZP(){
     this->z = this->A == 0;
     this->n = (this->A & 0b10000000) ? true : false;
     this->v = (c_6 ^ this->c) ? true : false;
+    this->PC += 2;
+}
+void CPU::ROR_ZP(){
+    BYTE val = this->ZeroPageVal();
+    bool old_carry = this->c;
+    this->c = (val & 0b00000001) ? true : false;
+    val >>= 1;
+    if (old_carry){
+        val |= 0b10000000;
+    }
+    this->n = (val & 0b10000000) ? true : false;
+    this->z = val == 0;
+    unsigned short ptr = this->ZeroPagePtr();
+    this->mmu->StoreByte(ptr, val);
     this->PC += 2;
 }
 void CPU::RMB6_ZP(){
@@ -1229,6 +1243,25 @@ void CPU::PLY(){
 void CPU::JMP_ABSOLUTE_INDEXED_INDIRECT(){
     unsigned short arg = this->AbsoluteIndexIndirectVal();
     this->PC = arg;
+}
+void CPU::ADC_AX(){
+    BYTE add = this->AbsoluteXVal();
+    unsigned short sum = this->A + add + (this->c ? 1 : 0);
+    if (this->d){
+        if (((this->A ^ add ^ sum) & 0x10) == 0x10){
+            sum += 0x06;
+        }
+        if ((sum & 0xF0) > 0x90){
+            sum += 0x60;
+        }
+    }
+    bool c_6 = (((this->A&0x7F) + (add&0x7F) + (this->c ? 1 : 0)) & 0b10000000) ? true : false;
+    this->A = (BYTE)sum;
+    this->c = sum > 0xFF;
+    this->z = this->A == 0;
+    this->n = (this->A & 0b10000000) ? true : false;
+    this->v = (c_6 ^ this->c) ? true : false;
+    this->PC += 3;
 }
 void CPU::BBR7(){
     BYTE val = this->ZeroPageVal();
@@ -1676,6 +1709,14 @@ void CPU::CLD(){
     this->d = false;
     this->PC += 1;
 }
+void CPU::CMP_AY(){
+    BYTE val = this->AbsoluteYVal();
+    this->c = this->A >= val;
+    this->z = this->A == val;
+    BYTE result = this->A - val;
+    this->n = (result & 0b10000000) ? true : false;
+    this->PC += 3;
+}
 void CPU::PHX(){
     this->Push(this->X);
     this->PC += 1;
@@ -1916,6 +1957,33 @@ void CPU::PLX(){
     this->z = this->X == 0;
     this->n = (this->X & 0b10000000) ? true : false;
     this->PC += 1;
+}
+void CPU::SBC_AX(){
+    BYTE val = this->AbsoluteXVal();
+    signed short twos = (signed char)this->A - (signed char)val - (this->c ? 0 : 1);
+    BYTE c = this->A >= (val + (this->c ? 0 : 1));
+    signed short result = this->A - val - (this->c ? 0 : 1);
+    BYTE bin_value = result;
+    this->z = bin_value == 0;
+    this->n = (bin_value & 0b10000000) ? true : false;
+    if (this->d){
+        signed short lowresult = (this->A & 0x0F) - (val & 0x0F) - (this->c ? 0 : 1);
+        if (lowresult < 0){
+            lowresult = ((lowresult - 6) & 0x0F) - 16;
+        }
+        result = (this->A & 0xF0) - (val & 0xF0) + lowresult;
+        if (result < 0){
+            result = result - 0x60;
+        }
+        this->A = result;
+    }
+    else {
+        this->A = bin_value;
+    }
+
+    this->v = twos < -128 || twos > 127;
+    this->c = c;
+    this->PC += 3;
 }
 void CPU::INC_AX(){
     BYTE val = this->AbsoluteXVal();
