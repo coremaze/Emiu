@@ -1067,11 +1067,13 @@ void CPU::ADC_ZP(){
     BYTE add = this->ZeroPageVal();
     unsigned short sum = this->A + add + (this->c ? 1 : 0);
     if (this->d){
-        if (((this->A ^ add ^ sum) & 0x10) == 0x10){
-            sum += 0x06;
+        unsigned short lowresult = (this->A & 0x0F) + (add & 0x0F) + (this->c ? 1 : 0);
+        if (lowresult > 9){
+            lowresult = ((lowresult + 6) & 0x0F) + 16;
         }
-        if ((sum & 0xF0) > 0x90){
-            sum += 0x60;
+        sum = (this->A & 0xF0) + (add & 0xF0) + lowresult;
+        if (sum > 0x90){
+            sum = sum + 0x60;
         }
     }
     bool c_6 = (((this->A&0x7F) + (add&0x7F) + (this->c ? 1 : 0)) & 0b10000000) ? true : false;
@@ -1113,11 +1115,13 @@ void CPU::ADC_I(){
     BYTE add = this->ImmediateVal();
     unsigned short sum = this->A + add + (this->c ? 1 : 0);
     if (this->d){
-        if (((this->A ^ add ^ sum) & 0x10) == 0x10){
-            sum += 0x06;
+        unsigned short lowresult = (this->A & 0x0F) + (add & 0x0F) + (this->c ? 1 : 0);
+        if (lowresult > 9){
+            lowresult = ((lowresult + 6) & 0x0F) + 16;
         }
-        if ((sum & 0xF0) > 0x90){
-            sum += 0x60;
+        sum = (this->A & 0xF0) + (add & 0xF0) + lowresult;
+        if (sum > 0x90){
+            sum = sum + 0x60;
         }
     }
     bool c_6 = (((this->A&0x7F) + (add&0x7F) + (this->c ? 1 : 0)) & 0b10000000) ? true : false;
@@ -1147,11 +1151,13 @@ void CPU::ADC_A(){
     BYTE add = this->AbsoluteVal();
     unsigned short sum = this->A + add + (this->c ? 1 : 0);
     if (this->d){
-        if (((this->A ^ add ^ sum) & 0x10) == 0x10){
-            sum += 0x06;
+        unsigned short lowresult = (this->A & 0x0F) + (add & 0x0F) + (this->c ? 1 : 0);
+        if (lowresult > 9){
+            lowresult = ((lowresult + 6) & 0x0F) + 16;
         }
-        if ((sum & 0xF0) > 0x90){
-            sum += 0x60;
+        sum = (this->A & 0xF0) + (add & 0xF0) + lowresult;
+        if (sum > 0x90){
+            sum = sum + 0x60;
         }
     }
     bool c_6 = (((this->A&0x7F) + (add&0x7F) + (this->c ? 1 : 0)) & 0b10000000) ? true : false;
@@ -1189,11 +1195,13 @@ void CPU::ADC_INDIRECT_INDEXED(){
     BYTE add = this->IndirectIndexedVal();
     unsigned short sum = this->A + add + (this->c ? 1 : 0);
     if (this->d){
-        if (((this->A ^ add ^ sum) & 0x10) == 0x10){
-            sum += 0x06;
+        unsigned short lowresult = (this->A & 0x0F) + (add & 0x0F) + (this->c ? 1 : 0);
+        if (lowresult > 9){
+            lowresult = ((lowresult + 6) & 0x0F) + 16;
         }
-        if ((sum & 0xF0) > 0x90){
-            sum += 0x60;
+        sum = (this->A & 0xF0) + (add & 0xF0) + lowresult;
+        if (sum > 0x90){
+            sum = sum + 0x60;
         }
     }
     bool c_6 = (((this->A&0x7F) + (add&0x7F) + (this->c ? 1 : 0)) & 0b10000000) ? true : false;
@@ -1208,11 +1216,13 @@ void CPU::ADC_IZP(){
     BYTE add = this->IndirectZeroPageVal();
     unsigned short sum = this->A + add + (this->c ? 1 : 0);
     if (this->d){
-        if (((this->A ^ add ^ sum) & 0x10) == 0x10){
-            sum += 0x06;
+        unsigned short lowresult = (this->A & 0x0F) + (add & 0x0F) + (this->c ? 1 : 0);
+        if (lowresult > 9){
+            lowresult = ((lowresult + 6) & 0x0F) + 16;
         }
-        if ((sum & 0xF0) > 0x90){
-            sum += 0x60;
+        sum = (this->A & 0xF0) + (add & 0xF0) + lowresult;
+        if (sum > 0x90){
+            sum = sum + 0x60;
         }
     }
     bool c_6 = (((this->A&0x7F) + (add&0x7F) + (this->c ? 1 : 0)) & 0b10000000) ? true : false;
@@ -1248,11 +1258,13 @@ void CPU::ADC_AX(){
     BYTE add = this->AbsoluteXVal();
     unsigned short sum = this->A + add + (this->c ? 1 : 0);
     if (this->d){
-        if (((this->A ^ add ^ sum) & 0x10) == 0x10){
-            sum += 0x06;
+        unsigned short lowresult = (this->A & 0x0F) + (add & 0x0F) + (this->c ? 1 : 0);
+        if (lowresult > 9){
+            lowresult = ((lowresult + 6) & 0x0F) + 16;
         }
-        if ((sum & 0xF0) > 0x90){
-            sum += 0x60;
+        sum = (this->A & 0xF0) + (add & 0xF0) + lowresult;
+        if (sum > 0x90){
+            sum = sum + 0x60;
         }
     }
     bool c_6 = (((this->A&0x7F) + (add&0x7F) + (this->c ? 1 : 0)) & 0b10000000) ? true : false;

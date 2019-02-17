@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1550265177 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\main.cpp
+1550356104 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\main.cpp
 	<windows.h>
 	"main.h"
 	"Display.h"
@@ -363,7 +363,7 @@
 	"begin_code.h"
 	"close_code.h"
 
-1550265980 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\cpu.cpp
+1550357419 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\cpu.cpp
 	<windows.h>
 	"CPU.h"
 	"Display.h"
@@ -377,7 +377,7 @@
 1549253443 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\cpu.cpp
 	"Display.cpp"
 
-1550190247 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\display.h
+1550266608 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\display.h
 	"SDL2/include/SDL2/SDL.h"
 	<windows.h>
 	<iostream>
@@ -414,7 +414,7 @@
 
 1550261030 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\interrupt.h
 
-1550262596 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\interrupt.cpp
+1550266276 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\interrupt.cpp
 	"Interrupt.h"
 	<windows.h>
 	"CPU.h"

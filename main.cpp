@@ -45,9 +45,9 @@ int main(int argc, char *argv[])
     while (!cpu->display->Update() && !stop){
         cpu->StartWaitTimer();
         for (int i = 0; i<loop_size; i++){
-            //if (((cpu->GetPRR()==0x207) && cpu->PC==0x6718) || stepping) {
+            //if (((cpu->GetPRR()==0x23B) && cpu->PC==0x5456) || stepping) {
                 //cpu->PrintState();
-                //printf("%02X\n", cpu->mmu->ReadByte(0x805));
+                //printf("%02X\n", cpu->mmu->ReadByte(0x925));
                 //stepping = true;
                 //std::cin.get();
                 //DumpData(cpu);
