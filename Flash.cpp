@@ -309,9 +309,6 @@ void Flash::ByteProgram(unsigned int address, BYTE by){
     this->mode = BYTE_PROGRAM_MODE;
     this->last_operation_address = address;
     this->memory[address] = by;
-    #ifdef SAVE_FLASH
-
-    #endif
 }
 
 void Flash::Save(char* fileName){
