@@ -17,7 +17,6 @@ bool BTInterrupt::Update(){
     unsigned int cycles = (duration* 8192.0)/1000.0 ; //The number of crystal cycles that should have elapsed: 8192Hz
     if (!cycles) return false;
     this->timer->Advance();
-    //printf("%d\n", (unsigned int)cycles);
     unsigned long long int old_clock = this->clock;
     this->clock += cycles;
 

@@ -1,5 +1,6 @@
 #include "Flash.h"
 #include <iostream>
+#include <fstream>
 Flash::Flash(){
     this->mode = READ_MODE;
     this->current_command = 0;
@@ -308,4 +309,13 @@ void Flash::ByteProgram(unsigned int address, BYTE by){
     this->mode = BYTE_PROGRAM_MODE;
     this->last_operation_address = address;
     this->memory[address] = by;
+    #ifdef SAVE_FLASH
+
+    #endif
+}
+
+void Flash::Save(char* fileName){
+    std::ofstream file(fileName, std::ios::out | std::ios::binary);
+    file.write((char*)this->memory, FLASH_SIZE);
+    file.close();
 }

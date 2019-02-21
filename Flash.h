@@ -11,6 +11,7 @@
 #define SECTOR_ERASE_MODE 2
 #define BLOCK_ERASE_MODE 3
 #define BYTE_PROGRAM_MODE 4
+
 class Flash {
 public:
     BYTE memory[FLASH_SIZE];
@@ -29,6 +30,7 @@ public:
     void BlockErase(unsigned int address);
     void ChipErase();
     void ByteProgram(unsigned int address, BYTE by);
+    void Save(char* fileName);
 };
 
 #endif // FLASH_H

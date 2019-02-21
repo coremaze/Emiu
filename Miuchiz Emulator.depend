@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1550356104 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\main.cpp
+1550789265 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\main.cpp
 	<windows.h>
 	"main.h"
 	"Display.h"
@@ -7,6 +7,7 @@
 	"MMU.h"
 	"DMA.h"
 	"Timer.h"
+	"Flash.h"
 	<fstream>
 
 1548787852 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\gl\glut.h
@@ -421,11 +422,12 @@
 	<iostream>
 	"Timer.h"
 
-1549679905 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\flash.h
+1550788328 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\flash.h
 
-1549680017 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\flash.cpp
+1550788568 source:e:\users\clockwork\desktop\c++ projects\miuchiz emulator\flash.cpp
 	"Flash.h"
 	<iostream>
+	<fstream>
 
 1550261145 e:\users\clockwork\desktop\c++ projects\miuchiz emulator\timer.h
 	<windows.h>

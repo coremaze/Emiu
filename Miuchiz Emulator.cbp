@@ -37,6 +37,8 @@
 		<Unit filename="Interrupt.h" />
 		<Unit filename="MMU.cpp" />
 		<Unit filename="MMU.h" />
+		<Unit filename="Timer.cpp" />
+		<Unit filename="Timer.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="main.h" />
 		<Extensions>

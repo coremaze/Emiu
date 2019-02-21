@@ -1,3 +1,5 @@
+#define SAVE_FLASH
+
 #include <windows.h>
 #include "main.h"
 #include "Display.h"
@@ -5,6 +7,7 @@
 #include "MMU.h"
 #include "DMA.h"
 #include "Timer.h"
+#include "Flash.h"
 #include <fstream>
 
 void HexDump(unsigned char* bin, unsigned int start, unsigned int end) {
@@ -25,7 +28,21 @@ void DumpData(CPU* cpu){
 
 int main(int argc, char *argv[])
 {
+    #ifdef SAVE_FLASH
+    printf("Controls:\n"
+           "D-PAD: Arrow keys\n"
+           "MENU: Right CTRL\n"
+           "POWER: P\n"
+           "ACTION: A\n"
+           "Screen: Home, Page Up, End, Page Down\n");
+    printf("\nNote:\n"
+           "1) To take a device out of DEMO MODE, press DOWN and MENU while booting.\n"
+           "2) To ensure that flash saves, press POWER before shutting down Emiu.\n\n");
+    CPU* cpu = new CPU("OTP.dat", "Flash.dat");
+    #else
     CPU* cpu = new CPU("OTP.dat", "Spike 1.09.03.dat");
+    #endif
+
 
     if (cpu->error){
         printf("Emiu was not able to start.\n");
@@ -53,40 +70,23 @@ int main(int argc, char *argv[])
                 //DumpData(cpu);
                 //cpu->mmu->StoreByte(0x884, 0);
             //}
-            //cpu->PrintState();
             if (cpu->Step()){
                 stop = true;
                 break;
             }
-
-
         }
         cpu->Wait(loop_size);
     }
 
-
-
-    //while (!cpu->Step() && !cpu->display->Update()){
-        //cpu->PrintState();
-
-
-        /*if (((cpu->GetPRR()&0xFFFF) == 0x207) && cpu->PC == 0x63FD ){
-            //stepping = true;
-            DumpData(cpu);
-        }*/
-
-
-        //if (stepping && !cpu->interrupted){
-            //cpu->PrintState();
-            //std::cin.get();
-            //stepping = false;
-        //}
-
-   // }
-
     printf("End state: ");
     cpu->PrintState();
     printf("IRR: %04X\n", cpu->GetIRR());
+
+    #ifdef SAVE_FLASH
+    printf("Saving flash.\n");
+    cpu->flash->Save("Flash.dat");
+    #endif // SAVE_FLASH
+
     Sleep(1000);
     return 0;
 }
