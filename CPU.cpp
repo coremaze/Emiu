@@ -28,7 +28,7 @@ opcode_func OPCODES[] = {
         CPU::BBR0, //0F
         CPU::BPL, //10
         (opcode_func)nullptr, //11
-        (opcode_func)nullptr, //12
+        CPU::ORA_IZP, //12
         (opcode_func)nullptr, //13
         (opcode_func)nullptr, //14
         (opcode_func)nullptr, //15
@@ -760,6 +760,13 @@ void CPU::BPL(){
     else {
         this->PC += 2;
     }
+}
+void CPU::ORA_IZP(){
+    BYTE val = this->IndirectZeroPageVal();
+    this->A |= val;
+    this->z = this->A == 0;
+    this->n = (this->A & 0b10000000) ? true : false;
+    this->PC += 2;
 }
 void CPU::RMB1_ZP(){
     BYTE val = this->ZeroPageVal();

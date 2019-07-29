@@ -148,6 +148,7 @@ public:
     void ASL_A(); //0E
     void BBR0(); //0F
     void BPL(); //10
+    void ORA_IZP(); //12
     void RMB1_ZP(); //17
     void CLC(); //18
     void ORA_AY(); //19
