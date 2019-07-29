@@ -252,6 +252,7 @@ public:
     void LDA_ZPX(); //B5
     void SMB3_ZP(); //B7
     void LDA_AY(); //B9
+    void TSX(); //BA
     void LDY_AX(); //BC
     void LDA_AX(); //BD
     void LDX_AY(); //BE  used for 1.09.03

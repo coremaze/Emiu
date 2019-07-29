@@ -196,7 +196,7 @@ opcode_func OPCODES[] = {
         CPU::SMB3_ZP, //B7
         (opcode_func)nullptr, //B8
         CPU::LDA_AY, //B9
-        (opcode_func)nullptr, //BA
+        CPU::TSX, //BA
         (opcode_func)nullptr, //BB
         CPU::LDY_AX, //BC
         CPU::LDA_AX, //BD
@@ -1564,6 +1564,10 @@ void CPU::LDA_AY(){
     this->z = this->A == 0;
     this->n = (this->A & 0b10000000) ? true : false;
     this->PC += 3;
+}
+void CPU::TSX(){
+    this->X = this->S;
+    this->PC++;
 }
 void CPU::LDY_AX(){
     BYTE val = this->AbsoluteXVal();
