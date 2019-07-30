@@ -219,7 +219,7 @@ opcode_func OPCODES[] = {
         CPU::DEC_A, //CE
         CPU::BBS4, //CF
         CPU::BNE, //D0
-        (opcode_func)nullptr, //D1
+        CPU::CMP_INDIRECT_INDEXED, //D1
         (opcode_func)nullptr, //D2
         (opcode_func)nullptr, //D3
         (opcode_func)nullptr, //D4
@@ -1716,6 +1716,14 @@ void CPU::BNE(){
     else {
         this->PC += 2;
     }
+}
+void CPU::CMP_INDIRECT_INDEXED(){
+    BYTE val = this->IndirectIndexedVal();
+    this->c = this->A >= val;
+    this->z = this->A == val;
+    BYTE result = this->A - val;
+    this->n = (result & 0b10000000) ? true : false;
+    this->PC += 2;
 }
 void CPU::DEC_ZPX(){
     BYTE val = this->ZeroPageXVal();

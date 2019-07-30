@@ -273,6 +273,7 @@ public:
     void DEC_A(); //CE
     void BBS4(); //CF
     void BNE(); //D0
+    void CMP_INDIRECT_INDEXED(); //D1
     void DEC_ZPX(); //D6
     void SMB5_ZP(); //D7
     void CLD(); //D8
