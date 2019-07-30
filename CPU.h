@@ -210,6 +210,7 @@ public:
     void ADC_AX(); //7D
     void BBR7(); //7F
     void BRA(); //80
+    void STA_INDEXED_INDIRECT(); //81
     void STY_ZP(); //84
     void STA_ZP(); //85
     void STX_ZP(); //86

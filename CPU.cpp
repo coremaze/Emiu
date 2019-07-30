@@ -139,7 +139,7 @@ opcode_func OPCODES[] = {
         (opcode_func)nullptr, //7E
         CPU::BBR7, //7F
         CPU::BRA, //80
-        (opcode_func)nullptr, //81
+        CPU::STA_INDEXED_INDIRECT, //81
         (opcode_func)nullptr, //82
         (opcode_func)nullptr, //83
         CPU::STY_ZP, //84
@@ -1294,6 +1294,11 @@ void CPU::BBR7(){
 void CPU::BRA(){
     unsigned short ptr = this->RelativePtr();
     this->PC = ptr;
+}
+void CPU::STA_INDEXED_INDIRECT(){
+    unsigned short ptr = this->IndexedIndirectPtr();
+    this->mmu->StoreByte(ptr, this->A);
+    this->PC += 2;
 }
 void CPU::STY_ZP(){
     unsigned short ptr = this->ZeroPagePtr();
