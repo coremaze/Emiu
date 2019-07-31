@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
                 break;
             }
         }
-        cpu->Wait(loop_size);
+        loop_size = cpu->Wait(loop_size);
     }
 
     printf("End state: ");

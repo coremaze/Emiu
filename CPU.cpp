@@ -627,17 +627,19 @@ void CPU::StartWaitTimer(){
     this->wait_timer->Start();
 }
 
-void CPU::Wait(unsigned int loop_size){
+unsigned int CPU::Wait(unsigned int loop_size){
     unsigned int cpu_speed = 6000000; //6MHz
     float average_cycles_per_instruction = 2.65;
-    float milliseconds_per_loop = (average_cycles_per_instruction*1000.0*(float)loop_size)/(float)cpu_speed;
-    while (true){
-        this->wait_timer->Stop();
-        if (this->wait_timer->Duration() >= (float)milliseconds_per_loop){
-            this->wait_timer->Advance();
-            break;
-        }
-    }
+    float loops_per_millisecond = (cpu_speed / 1000.0)/average_cycles_per_instruction;
+    this->wait_timer->Stop();
+    if (this->wait_timer->Duration() < 0.5) {
+        Sleep(1);
+    } //else printf("%f\n", this->wait_timer->Duration());
+    this->wait_timer->Stop();
+    float duration = this->wait_timer->Duration();
+    this->wait_timer->Advance();
+    unsigned int loops_owed = duration * loops_per_millisecond;
+    return loops_owed;
 }
 
 bool CPU::Step(){
@@ -654,9 +656,8 @@ bool CPU::Step(){
 
     bool bt_interrupt_requested = this->btInterrupt->Update();
     bool pt_interrupt_requested = this->ptInterrupt->Update();
-    if (!this->i){
-        if (this->interrupted) {}
-        else if (pt_interrupt_requested){
+    if (!this->i && !this->interrupted){
+        if (pt_interrupt_requested){
             this->BeginInterrupt();
             this->PushShort(this->PC);
             this->Push(this->ExportFlags());

@@ -134,7 +134,7 @@ public:
 
 
     void StartWaitTimer();
-    void Wait(unsigned int loop_size);
+    unsigned int Wait(unsigned int loop_size);
     bool Step();
 
     void ORA_ZP(); //05

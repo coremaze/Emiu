@@ -15,6 +15,7 @@ public:
     CPU* cpu;
     unsigned long long int clock;
     Timer* timer;
+    unsigned int BTREQ_data_buffer[8];
 
     BTInterrupt(CPU* cpu);
     bool Update();

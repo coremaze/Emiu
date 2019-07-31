@@ -10,7 +10,9 @@ BTInterrupt::BTInterrupt(CPU* cpu){
     this->clock = 0;
     this->timer = new Timer();
     this->timer->Start();
+    for (int i = 0; i<8; i++) this->BTREQ_data_buffer[i] = 0;
 }
+
 bool BTInterrupt::Update(){
     this->timer->Stop();
     float duration = this->timer->Duration();
@@ -28,30 +30,56 @@ bool BTInterrupt::Update(){
     //an interrupt should have been triggered between
     //this update and last update.
 
-    if ( (old_clock / 4096) < (this->clock / 4096) ){ //2Hz
+    /*if ( (old_clock / 4096) < (this->clock / 4096) ){
         BTREQ_data |= 0b1;
     }
-    if ( (old_clock / 256) < (this->clock / 256) ){ //32Hz
+    if ( (old_clock / 256) < (this->clock / 256) ){
         BTREQ_data |= 0b10;
     }
     if ( (old_clock / 128) < (this->clock / 128) ){ //64Hz
         BTREQ_data |= 0b100;
     }
-    if ( (old_clock / 64) < (this->clock / 64) ){ //128Hz
+    if ( (old_clock / 64) < (this->clock / 64) ){
         BTREQ_data |= 0b1000;
     }
-    if ( (old_clock / 32) < (this->clock / 32) ){ //256Hz
+    if ( (old_clock / 32) < (this->clock / 32) ){
         BTREQ_data |= 0b10000;
     }
-    if ( (old_clock / 16) < (this->clock / 16) ){ //512Hz
+    if ( (old_clock / 16) < (this->clock / 16) ){
         BTREQ_data |= 0b100000;
     }
-    if ( (old_clock / 4) < (this->clock / 4) ){ //2048Hz
+    if ( (old_clock / 4) < (this->clock / 4) ){
         BTREQ_data |= 0b1000000;
     }
-    if ( (old_clock) < (this->clock) ){ //8192Hz
+    if ( (old_clock) < (this->clock) ){
         BTREQ_data |= 0b10000000;
+    }*/
+
+    this->BTREQ_data_buffer[0] += this->clock / 4096 - old_clock / 4096; //2Hz
+    this->BTREQ_data_buffer[1] += this->clock / 256 - old_clock / 256; //32Hz
+    this->BTREQ_data_buffer[2] += this->clock / 128 - old_clock / 128; //64Hz
+    this->BTREQ_data_buffer[3] += this->clock / 64 - old_clock / 64; //128Hz
+    this->BTREQ_data_buffer[4] += this->clock / 32 - old_clock / 32; //256Hz
+    this->BTREQ_data_buffer[5] += this->clock / 16 - old_clock / 16; //512Hz
+    this->BTREQ_data_buffer[6] += this->clock / 4 - old_clock / 4; //2048Hz
+    this->BTREQ_data_buffer[7] += this->clock - old_clock; //8192Hz
+
+
+    /*if (this->BTREQ_data_buffer[0]){
+        for (int i = 0; i<8; i++) {
+            printf("%d ", this->BTREQ_data_buffer[i]);
+        }
+        printf("%d %ld / %d\n", cycles, this->clock, (int)old_clock);
+    }*/
+
+    for (int i = 0; i<8; i++) {
+        if (this->BTREQ_data_buffer[i]) {
+            this->BTREQ_data_buffer[i]--;
+            BTREQ_data |= 1<<i;
+        }
     }
+
+
 
     BTREQ_data &= BTEN_data;
     this->cpu->memRegisters[BTREQ] = BTREQ_data;
