@@ -1,7 +1,8 @@
 #ifndef FLASH_H
 #define FLASH_H
+#include "types.h"
+
 #define FLASH_SIZE 0x200000
-#define BYTE unsigned char
 
 #define SECTOR_SIZE 0x1000
 #define BLOCK_SIZE 0x10000
@@ -14,23 +15,23 @@
 
 class Flash {
 public:
-    BYTE memory[FLASH_SIZE];
-    BYTE mode;
+    u8 memory[FLASH_SIZE];
+    u8 mode;
     unsigned long long int current_command;
-    BYTE write_cycle;
+    u8 write_cycle;
     unsigned int last_operation_address;
 
     Flash();
     unsigned int GetExpectedWriteAddress();
-    void Write(unsigned int address, BYTE by);
-    BYTE Read(unsigned int address);
+    void Write(unsigned int address, u8 by);
+    u8 Read(unsigned int address);
     void ResetWriteCycle();
-    BYTE GetStatusRegister();
+    u8 GetStatusRegister();
     void SectorErase(unsigned int address);
     void BlockErase(unsigned int address);
     void ChipErase();
-    void ByteProgram(unsigned int address, BYTE by);
-    void Save(char* fileName);
+    void ByteProgram(unsigned int address, u8 by);
+    void Save(const char* fileName);
 };
 
 #endif // FLASH_H

@@ -8,7 +8,7 @@ MMU::MMU(CPU* cpu){
     this->cpu = cpu;
 }
 
-void MMU::StoreByte(unsigned short address, BYTE by){
+void MMU::StoreByte(unsigned short address, u8 by){
     if ((address >= REGISTERS_START) && (address < (REGISTERS_START + REGISTERS_LENGTH))){ //Register?
         if (address == BTREQ){
             by = ~by;
@@ -107,7 +107,7 @@ void MMU::StoreByte(unsigned short address, BYTE by){
     }
 }
 
-BYTE MMU::ReadByte(unsigned short address){
+u8 MMU::ReadByte(unsigned short address){
     if ((address >= REGISTERS_START) && (address < (REGISTERS_START + REGISTERS_LENGTH))){ //Register?
         if (address == DPTR){
             return this->cpu->dma->GetDPTRL();
@@ -200,17 +200,17 @@ BYTE MMU::ReadByte(unsigned short address){
 }
 
 void MMU::StoreShort(unsigned short address, unsigned short sh){
-    BYTE low;
-    BYTE high;
-    low = (BYTE)(sh & 0xFF);
-    high = (BYTE)((sh & 0xFF00) >> 8);
+    u8 low;
+    u8 high;
+    low = (u8)(sh & 0xFF);
+    high = (u8)((sh & 0xFF00) >> 8);
     this->StoreByte(address, low);
     this->StoreByte(address+1, high);
 }
 
 unsigned short MMU::ReadShort(unsigned short address){
-    BYTE low = this->ReadByte(address);
-    BYTE high = this->ReadByte(address+1);
+    u8 low = this->ReadByte(address);
+    u8 high = this->ReadByte(address+1);
     unsigned short sh = (((unsigned short)high) << 8 ) | ((unsigned short)low);
     return sh;
 }

@@ -1,6 +1,8 @@
 #ifndef DMA_H
 #define DMA_H
 
+#include "types.h"
+
 #define DPTR 0x58
 #define DBKR 0x5A
 #define DCNT 0x5C
@@ -18,20 +20,20 @@ public:
     unsigned short destBank;
     unsigned short number;
     DMA(CPU* cpu);
-    void SetDPTRL(BYTE by);
-    BYTE GetDPTRL();
-    void SetDPTRH(BYTE by);
-    BYTE GetDPTRH();
+    void SetDPTRL(u8 by);
+    u8 GetDPTRL();
+    void SetDPTRH(u8 by);
+    u8 GetDPTRH();
 
-    void SetDBKRL(BYTE by);
-    BYTE GetDBKRL();
-    void SetDBKRH(BYTE by);
-    BYTE GetDBKRH();
+    void SetDBKRL(u8 by);
+    u8 GetDBKRL();
+    void SetDBKRH(u8 by);
+    u8 GetDBKRH();
 
-    void SetDCNTL(BYTE by);
-    BYTE GetDCNTL();
-    void SetDCNTH(BYTE by);
-    BYTE GetDCNTH();
+    void SetDCNTL(u8 by);
+    u8 GetDCNTL();
+    void SetDCNTH(u8 by);
+    u8 GetDCNTH();
     void Execute();
 
 };

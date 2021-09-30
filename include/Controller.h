@@ -1,6 +1,7 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
-#include "SDL2/include/SDL2/SDL.h"
+#include "SDL2/SDL.h"
+
 class CPU;
 class MMU;
 class PTInterrupt;

@@ -1,6 +1,5 @@
 #define SAVE_FLASH
 
-#include <windows.h>
 #include "main.h"
 #include "Display.h"
 #include "CPU.h"
@@ -9,6 +8,7 @@
 #include "Timer.h"
 #include "Flash.h"
 #include <fstream>
+#include "types.h"
 
 void HexDump(unsigned char* bin, unsigned int start, unsigned int end) {
     for (unsigned int i = start; i<end; i++) {
@@ -17,7 +17,7 @@ void HexDump(unsigned char* bin, unsigned int start, unsigned int end) {
 }
 
 void DumpData(CPU* cpu){
-    BYTE data[0x10000] = {0};
+    u8 data[0x10000] = {0};
     for (int i = 0; i<0x10000; i++){
         data[i] = cpu->mmu->ReadByte(i);
     }
@@ -46,14 +46,14 @@ int main(int argc, char *argv[])
 
     if (cpu->error){
         printf("Emiu was not able to start.\n");
-        Sleep(1000);
+        Timer::USleep(1000);
         return 1;
     }
 
     cpu->display->Splash();
 
     cpu->display->Update();
-    Sleep(1000); //give time to hold keys if desired
+    Timer::USleep(1000); //give time to hold keys if desired
 
     bool stepping = false;
     bool stop = false;
@@ -75,6 +75,9 @@ int main(int argc, char *argv[])
                 break;
             }
         }
+
+        //printf("loop_size: %u\n", loop_size);
+        //fflush(stdout);
         loop_size = cpu->Wait(loop_size);
     }
 
@@ -87,6 +90,6 @@ int main(int argc, char *argv[])
     cpu->flash->Save("Flash.dat");
     #endif // SAVE_FLASH
 
-    Sleep(1000);
+    Timer::USleep(1000);
     return 0;
 }

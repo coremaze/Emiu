@@ -7,8 +7,8 @@ DMA::DMA(CPU* cpu){
     this->cpu = cpu;
 }
 
-void DMA::SetDPTRL(BYTE by){
-    BYTE DSEL_value = this->cpu->mmu->ReadByte(DSEL);
+void DMA::SetDPTRL(u8 by){
+    u8 DSEL_value = this->cpu->mmu->ReadByte(DSEL);
 
     if (DSEL_value & 1) { //Select destination
         this->destPtr = (this->destPtr & 0xFF00) | (unsigned short)by;
@@ -18,8 +18,8 @@ void DMA::SetDPTRL(BYTE by){
     }
 }
 
-BYTE DMA::GetDPTRL(){
-    BYTE DSEL_value = this->cpu->mmu->ReadByte(DSEL);
+u8 DMA::GetDPTRL(){
+    u8 DSEL_value = this->cpu->mmu->ReadByte(DSEL);
 
     if (DSEL_value & 1) { //Select destination
         return this->destPtr & 0xFF;
@@ -29,8 +29,8 @@ BYTE DMA::GetDPTRL(){
     }
 }
 
-void DMA::SetDPTRH(BYTE by){
-    BYTE DSEL_value = this->cpu->mmu->ReadByte(DSEL);
+void DMA::SetDPTRH(u8 by){
+    u8 DSEL_value = this->cpu->mmu->ReadByte(DSEL);
 
     if (DSEL_value & 1) { //Select destination
         this->destPtr = (this->destPtr & 0x00FF) | (((unsigned short)by) << 8) | 0x8000; //highest bit always set
@@ -40,8 +40,8 @@ void DMA::SetDPTRH(BYTE by){
     }
 }
 
-BYTE DMA::GetDPTRH(){
-    BYTE DSEL_value = this->cpu->mmu->ReadByte(DSEL);
+u8 DMA::GetDPTRH(){
+    u8 DSEL_value = this->cpu->mmu->ReadByte(DSEL);
 
     if (DSEL_value & 1) { //Select destination
         return (this->destPtr & 0xFF00) >> 8;
@@ -51,8 +51,8 @@ BYTE DMA::GetDPTRH(){
     }
 }
 
-void DMA::SetDBKRL(BYTE by){
-    BYTE DSEL_value = this->cpu->mmu->ReadByte(DSEL);
+void DMA::SetDBKRL(u8 by){
+    u8 DSEL_value = this->cpu->mmu->ReadByte(DSEL);
 
     if (DSEL_value & 1) { //Select destination
         this->destBank = (this->destBank & 0xFF00) | by;
@@ -62,8 +62,8 @@ void DMA::SetDBKRL(BYTE by){
     }
 }
 
-BYTE DMA::GetDBKRL(){
-    BYTE DSEL_value = this->cpu->mmu->ReadByte(DSEL);
+u8 DMA::GetDBKRL(){
+    u8 DSEL_value = this->cpu->mmu->ReadByte(DSEL);
 
     if (DSEL_value & 1) { //Select destination
         return this->destBank & 0xFF;
@@ -73,8 +73,8 @@ BYTE DMA::GetDBKRL(){
     }
 }
 
-void DMA::SetDBKRH(BYTE by){
-    BYTE DSEL_value = this->cpu->mmu->ReadByte(DSEL);
+void DMA::SetDBKRH(u8 by){
+    u8 DSEL_value = this->cpu->mmu->ReadByte(DSEL);
 
     if (DSEL_value & 1) { //Select destination
         this->destBank = (this->destBank & 0x00FF) | (((unsigned short)by) << 8);
@@ -84,8 +84,8 @@ void DMA::SetDBKRH(BYTE by){
     }
 }
 
-BYTE DMA::GetDBKRH(){
-    BYTE DSEL_value = this->cpu->mmu->ReadByte(DSEL);
+u8 DMA::GetDBKRH(){
+    u8 DSEL_value = this->cpu->mmu->ReadByte(DSEL);
 
     if (DSEL_value & 1) { //Select destination
         return (this->destBank & 0xFF00) >> 8;
@@ -95,29 +95,29 @@ BYTE DMA::GetDBKRH(){
     }
 }
 
-void DMA::SetDCNTL(BYTE by){
+void DMA::SetDCNTL(u8 by){
     this->number = (this->number & 0xFF00) | by;
 }
 
-BYTE DMA::GetDCNTL(){
+u8 DMA::GetDCNTL(){
     return this->number & 0xFF;
 }
 
-void DMA::SetDCNTH(BYTE by){
+void DMA::SetDCNTH(u8 by){
     this->number = (this->number & 0x00FF) | (((unsigned short)by) << 8);
     this->Execute();
 }
 
-BYTE DMA::GetDCNTH(){
+u8 DMA::GetDCNTH(){
     return (this->number & 0xFF00) >> 8;
 }
 
 void DMA::Execute(){
     unsigned short old_DRR = this->cpu->GetDRR();
-    BYTE DMOD_value = this->cpu->mmu->ReadByte(DMOD);
-    BYTE source_mode = DMOD_value & 0b000011;
-    BYTE dest_mode = (DMOD_value & 0b001100) >> 2;
-    BYTE func = (DMOD_value & 0b110000) >> 4;
+    u8 DMOD_value = this->cpu->mmu->ReadByte(DMOD);
+    u8 source_mode = DMOD_value & 0b000011;
+    u8 dest_mode = (DMOD_value & 0b001100) >> 2;
+    u8 func = (DMOD_value & 0b110000) >> 4;
 
     //printf("PC:%04X %02X DRR:%04X\n", this->cpu->PC, dest_mode, this->cpu->GetDRR());
 
@@ -127,13 +127,13 @@ void DMA::Execute(){
     for (int i = 0; i<(this->number+1); i++){
         this->cpu->mmu->StoreShort(DRR, this->sourceBank);
 
-        BYTE source_byte = this->cpu->mmu->ReadByte(this->sourcePtr);
+        u8 source_byte = this->cpu->mmu->ReadByte(this->sourcePtr);
 
         this->cpu->mmu->StoreShort(DRR, this->destBank);
 
-        BYTE dest_byte = this->cpu->mmu->ReadByte(this->destPtr);
+        u8 dest_byte = this->cpu->mmu->ReadByte(this->destPtr);
 
-        BYTE new_byte;
+        u8 new_byte;
         //FUNC
         if (func == 0b00){ //Normal mode
             new_byte = source_byte;

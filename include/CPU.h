@@ -1,5 +1,8 @@
 #ifndef CPU_H
 #define CPU_H
+
+#include "types.h"
+
 class Display;
 class MMU;
 class DMA;
@@ -13,13 +16,11 @@ class Flash;
 class Timer;
 
 
-
 #define STACK_START 0x100
 #define IRR 0x30
 #define PRR 0x32
 #define DRR 0x34
 #define BRR 0x36
-#define BYTE unsigned char
 
 #define OTP_SIZE 0x4000
 #define FLASH_SIZE 0x200000
@@ -32,7 +33,7 @@ class Timer;
 class CPU {
 public:
     Display* display;
-    BYTE error;
+    u8 error;
 
     //Flags
     bool c; //Carry
@@ -44,17 +45,17 @@ public:
     bool n; //Negative
 
     //Registers
-    BYTE A; //Accumulator
-    BYTE X; //X
-    BYTE Y; //Y
-    BYTE S; //Stack
+    u8 A; //Accumulator
+    u8 X; //X
+    u8 Y; //Y
+    u8 S; //Stack
     unsigned short PC; //Program Counter
 
     //Memory
-    BYTE memRegisters[0x80];
-    BYTE RAM[0x1000000];
-    BYTE videoRegisters[0x2];
-    BYTE OTP[OTP_SIZE];
+    u8 memRegisters[0x80];
+    u8 RAM[0x1000000];
+    u8 videoRegisters[0x2];
+    u8 OTP[OTP_SIZE];
 
     Flash* flash;
 
@@ -70,7 +71,7 @@ public:
 
     Timer* wait_timer;
 
-    CPU(char* OTPFile, char* flashFile);
+    CPU(const char* OTPFile, const char* flashFile);
     void PrintState();
     unsigned short GetIRR();
     unsigned short GetPRR();
@@ -83,54 +84,54 @@ public:
     void Reset();
     unsigned short GetBTVector();
     unsigned short GetPTVector();
-    void WriteVideoRegister(unsigned short address, BYTE by);
+    void WriteVideoRegister(unsigned short address, u8 by);
 
-    BYTE ImmediateVal();
+    u8 ImmediateVal();
 
-    BYTE ZeroPagePtr();
-    BYTE ZeroPageVal();
+    u8 ZeroPagePtr();
+    u8 ZeroPageVal();
 
-    BYTE ZeroPageXPtr();
-    BYTE ZeroPageXVal();
+    u8 ZeroPageXPtr();
+    u8 ZeroPageXVal();
 
-    BYTE ZeroPageYPtr();
-    BYTE ZeroPageYVal();
+    u8 ZeroPageYPtr();
+    u8 ZeroPageYVal();
 
     unsigned short RelativePtr();
-    BYTE RelativeVal();
+    u8 RelativeVal();
 
     unsigned short AbsolutePtr();
-    BYTE AbsoluteVal();
+    u8 AbsoluteVal();
 
     unsigned short AbsoluteXPtr();
-    BYTE AbsoluteXVal();
+    u8 AbsoluteXVal();
 
     unsigned short AbsoluteYPtr();
-    BYTE AbsoluteYVal();
+    u8 AbsoluteYVal();
 
     unsigned short IndirectPtr();
     unsigned short IndirectVal();
 
     unsigned short IndirectZeroPagePtr();
-    BYTE IndirectZeroPageVal();
+    u8 IndirectZeroPageVal();
 
     unsigned short IndexedIndirectPtr();
-    BYTE IndexedIndirectVal();
+    u8 IndexedIndirectVal();
 
     unsigned short IndirectIndexedPtr();
-    BYTE IndirectIndexedVal();
+    u8 IndirectIndexedVal();
 
     unsigned short AbsoluteIndexIndirectPtr();
     unsigned short AbsoluteIndexIndirectVal();
 
-    void Push(BYTE by);
+    void Push(u8 by);
     void PushShort(unsigned short sh);
 
-    BYTE Pop();
+    u8 Pop();
     unsigned short PopShort();
 
-    BYTE ExportFlags();
-    void ImportFlags(BYTE flags);
+    u8 ExportFlags();
+    void ImportFlags(u8 flags);
 
 
     void StartWaitTimer();

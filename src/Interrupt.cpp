@@ -1,8 +1,8 @@
 #include "Interrupt.h"
-#include <windows.h>
 #include "CPU.h"
 #include <iostream>
 #include "Timer.h"
+#include "types.h"
 
 
 BTInterrupt::BTInterrupt(CPU* cpu){
@@ -22,55 +22,22 @@ bool BTInterrupt::Update(){
     unsigned long long int old_clock = this->clock;
     this->clock += cycles;
 
-    BYTE BTEN_data = this->cpu->memRegisters[BTEN]; //bits are set to 1 for each clock that is enabled
-    BYTE BTREQ_data = this->cpu->memRegisters[BTREQ];
+    u8 BTEN_data = this->cpu->memRegisters[BTEN]; //bits are set to 1 for each clock that is enabled
+    u8 BTREQ_data = this->cpu->memRegisters[BTREQ];
 
     //Literally simulating an oscillating crystal
     //is not going to happen, so this checks if
     //an interrupt should have been triggered between
     //this update and last update.
 
-    /*if ( (old_clock / 4096) < (this->clock / 4096) ){
-        BTREQ_data |= 0b1;
-    }
-    if ( (old_clock / 256) < (this->clock / 256) ){
-        BTREQ_data |= 0b10;
-    }
-    if ( (old_clock / 128) < (this->clock / 128) ){ //64Hz
-        BTREQ_data |= 0b100;
-    }
-    if ( (old_clock / 64) < (this->clock / 64) ){
-        BTREQ_data |= 0b1000;
-    }
-    if ( (old_clock / 32) < (this->clock / 32) ){
-        BTREQ_data |= 0b10000;
-    }
-    if ( (old_clock / 16) < (this->clock / 16) ){
-        BTREQ_data |= 0b100000;
-    }
-    if ( (old_clock / 4) < (this->clock / 4) ){
-        BTREQ_data |= 0b1000000;
-    }
-    if ( (old_clock) < (this->clock) ){
-        BTREQ_data |= 0b10000000;
-    }*/
-
-    this->BTREQ_data_buffer[0] += this->clock / 4096 - old_clock / 4096; //2Hz
-    this->BTREQ_data_buffer[1] += this->clock / 256 - old_clock / 256; //32Hz
-    this->BTREQ_data_buffer[2] += this->clock / 128 - old_clock / 128; //64Hz
-    this->BTREQ_data_buffer[3] += this->clock / 64 - old_clock / 64; //128Hz
-    this->BTREQ_data_buffer[4] += this->clock / 32 - old_clock / 32; //256Hz
-    this->BTREQ_data_buffer[5] += this->clock / 16 - old_clock / 16; //512Hz
-    this->BTREQ_data_buffer[6] += this->clock / 4 - old_clock / 4; //2048Hz
-    this->BTREQ_data_buffer[7] += this->clock - old_clock; //8192Hz
-
-
-    /*if (this->BTREQ_data_buffer[0]){
-        for (int i = 0; i<8; i++) {
-            printf("%d ", this->BTREQ_data_buffer[i]);
-        }
-        printf("%d %ld / %d\n", cycles, this->clock, (int)old_clock);
-    }*/
+    this->BTREQ_data_buffer[0] += this->clock / 4096 - old_clock / 4096; // 2Hz
+    this->BTREQ_data_buffer[1] += this->clock /  256 - old_clock /  256; // 32Hz
+    this->BTREQ_data_buffer[2] += this->clock /  128 - old_clock /  128; // 64Hz
+    this->BTREQ_data_buffer[3] += this->clock /  64 - old_clock  /  64;  // 128Hz
+    this->BTREQ_data_buffer[4] += this->clock /  32 - old_clock  /  32;  // 256Hz
+    this->BTREQ_data_buffer[5] += this->clock /  16 - old_clock  /  16;  // 512Hz
+    this->BTREQ_data_buffer[6] += this->clock /   4 - old_clock  /   4;  // 2048Hz
+    this->BTREQ_data_buffer[7] += this->clock       - old_clock;         // 8192Hz
 
     for (int i = 0; i<8; i++) {
         if (this->BTREQ_data_buffer[i]) {
@@ -78,8 +45,6 @@ bool BTInterrupt::Update(){
             BTREQ_data |= 1<<i;
         }
     }
-
-
 
     BTREQ_data &= BTEN_data;
     this->cpu->memRegisters[BTREQ] = BTREQ_data;
@@ -97,7 +62,7 @@ void PTInterrupt::Trigger(){
     this->triggered = true;
 }
 bool PTInterrupt::Update(){
-    BYTE IREQL_data = this->cpu->memRegisters[IREQL];
+    u8 IREQL_data = this->cpu->memRegisters[IREQL];
     if (this->triggered){
         IREQL_data |= 0b00100000;
     }
@@ -107,8 +72,8 @@ bool PTInterrupt::Update(){
 
     if (this->triggered){
         this->triggered = false;
-        BYTE IENAL_data = this->cpu->memRegisters[IENAL];
-        BYTE IEPT = IENAL_data & 0b00100000;
+        u8 IENAL_data = this->cpu->memRegisters[IENAL];
+        u8 IEPT = IENAL_data & 0b00100000;
         if (IEPT){
             return true;
         }

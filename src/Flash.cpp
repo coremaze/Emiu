@@ -16,7 +16,7 @@ unsigned int Flash::GetExpectedWriteAddress(){
                                   0xAAA};//6
     return addresses[this->write_cycle-1];
 }
-void Flash::Write(unsigned int address, BYTE by){
+void Flash::Write(unsigned int address, u8 by){
     this->mode = COMMAND_MODE;
     unsigned short expected_address = this->GetExpectedWriteAddress();
     this->current_command <<= 8;
@@ -253,7 +253,7 @@ void Flash::Write(unsigned int address, BYTE by){
         }
     }
 }
-BYTE Flash::Read(unsigned int address){
+u8 Flash::Read(unsigned int address){
     if (this->mode == READ_MODE){
         return this->memory[address];
     }
@@ -273,7 +273,7 @@ void Flash::ResetWriteCycle(){
     this->current_command = 0;
 }
 
-BYTE Flash::GetStatusRegister(){
+u8 Flash::GetStatusRegister(){
     //DQ6 would normally alternate while program or erase is in progress, but the emulator does not do this asynchronously
     //DQ7 would normally be 0 while operation is in progress, but the emulator does not do this asynchronously
     return 0b11000000;
@@ -304,14 +304,14 @@ void Flash::ChipErase(){
         this->memory[i] = 0xFF;
     }
 }
-void Flash::ByteProgram(unsigned int address, BYTE by){
+void Flash::ByteProgram(unsigned int address, u8 by){
     //printf("A byte program has been issued.\n");
     this->mode = BYTE_PROGRAM_MODE;
     this->last_operation_address = address;
     this->memory[address] = by;
 }
 
-void Flash::Save(char* fileName){
+void Flash::Save(const char* fileName){
     std::ofstream file(fileName, std::ios::out | std::ios::binary);
     file.write((char*)this->memory, FLASH_SIZE);
     file.close();
